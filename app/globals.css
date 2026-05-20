@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #F5F0E8;
+  --surface: #FDFAF5;
+  --primary: #C4714A;
+  --primary-light: #EDD5C4;
+  --secondary: #5B8A6E;
+  --secondary-light: #C8DDD1;
+  --dark: #2C1810;
+  --mid: #7A6355;
+  --muted: #C4B8AA;
+}
+
+body {
+  background: var(--bg);
+  color: var(--dark);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 20px;
+}
