@@ -5,11 +5,18 @@ import { useState } from 'react';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    await signIn('resend', { email, callbackUrl: '/' });
+    setError('');
+    try {
+      await signIn('resend', { email, callbackUrl: '/' });
+    } catch {
+      setError('Something went wrong. Please try again.');
+      setLoading(false);
+    }
   }
 
   return (
@@ -35,6 +42,9 @@ export default function LoginPage() {
         >
           {loading ? 'Sending...' : 'Send Sign-In Link'}
         </button>
+        {error && (
+          <p className="text-red-600 text-lg text-center mt-2">{error}</p>
+        )}
       </form>
     </div>
   );
