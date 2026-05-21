@@ -48,12 +48,15 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const userId = session.user.id;
   const { sessionId } = await req.json() as { sessionId: string };
 
   const [updated] = await db.update(sessionLogs)
     .set({ completedAt: new Date() })
-    .where(eq(sessionLogs.id, sessionId))
+    .where(and(eq(sessionLogs.id, sessionId), eq(sessionLogs.userId, userId)))
     .returning();
+
+  if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   return NextResponse.json({ session: updated });
 }
