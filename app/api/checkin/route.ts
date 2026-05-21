@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth';
 import { generateText, stepCountIs } from 'ai';
-import { google } from '@ai-sdk/google';
+import { coachModel } from '@/lib/coach/model';
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { sessionLogs, users, userExercisePlan } from '@/lib/schema';
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
   // Fire-and-forget: trigger coach to update tomorrow's plan without blocking the response
   generateText({
-    model: google('gemini-2.5-flash-lite'),
+    model: coachModel,
     system: buildSystemPrompt({
       userName: user?.name ?? 'friend',
       todayPlan: plan.map((p) => ({ name: p.exercise.name, level: p.level })),

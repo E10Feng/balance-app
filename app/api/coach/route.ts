@@ -1,8 +1,8 @@
 import { auth } from '@/lib/auth';
 import { streamText, stepCountIs, convertToModelMessages } from 'ai';
 import type { UIMessage } from 'ai';
-import { google } from '@ai-sdk/google';
 import { NextResponse } from 'next/server';
+import { coachModel } from '@/lib/coach/model';
 import { makeCoachTools } from '@/lib/coach/tools';
 import { buildSystemPrompt } from '@/lib/coach/system-prompt';
 import { containsPainKeywords, PAIN_RESPONSE } from '@/lib/coach/guardrails';
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
   if (containsPainKeywords(lastMessage)) {
     const safetyResult = streamText({
-      model: google('gemini-2.5-flash-lite'),
+      model: coachModel,
       system: `Output this exact message word for word: "${PAIN_RESPONSE}"`,
       messages: [{ role: 'user', content: 'Output the safety message now.' }],
       stopWhen: stepCountIs(1),
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   });
 
   const result = streamText({
-    model: google('gemini-2.5-flash-lite'),
+    model: coachModel,
     system: buildSystemPrompt({
       userName: user?.name ?? 'friend',
       todayPlan: plan.map((p) => ({ name: p.exercise.name, level: p.level })),
