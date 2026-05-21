@@ -4,6 +4,8 @@ import { DefaultChatTransport } from 'ai';
 import CoachMei, { type MeiState } from '@/components/CoachMei';
 import { useEffect, useRef, useState } from 'react';
 
+const transport = new DefaultChatTransport({ api: '/api/coach' });
+
 const QUICK_REPLIES = [
   'What exercises do I have today?',
   'Is this exercise safe for me?',
@@ -14,9 +16,7 @@ const QUICK_REPLIES = [
 ];
 
 export default function CoachPage() {
-  const { messages, sendMessage, status } = usePersistentChat({
-    transport: new DefaultChatTransport({ api: '/api/coach' }),
-  });
+  const { messages, sendMessage, status } = usePersistentChat({ transport });
   const [input, setInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 

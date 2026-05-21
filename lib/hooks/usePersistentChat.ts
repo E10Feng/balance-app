@@ -1,9 +1,9 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useChat } from '@ai-sdk/react';
 import type { UIMessage } from 'ai';
 
-const STORAGE_KEY = 'coach-messages';
+export const STORAGE_KEY = 'coach-messages';
 
 function readStoredMessages(): UIMessage[] {
   if (typeof window === 'undefined') return [];
@@ -16,7 +16,11 @@ function readStoredMessages(): UIMessage[] {
 }
 
 export function usePersistentChat(options: Parameters<typeof useChat>[0]) {
-  const chat = useChat({ ...options, initialMessages: readStoredMessages() });
+  const initialMessages = useRef<UIMessage[] | undefined>(undefined);
+  if (initialMessages.current === undefined) {
+    initialMessages.current = readStoredMessages();
+  }
+  const chat = useChat({ ...options, initialMessages: initialMessages.current });
 
   useEffect(() => {
     try {

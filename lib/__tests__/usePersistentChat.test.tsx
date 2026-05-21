@@ -10,7 +10,7 @@ vi.mock('@ai-sdk/react', () => ({
   })),
 }));
 
-import { usePersistentChat } from '../hooks/usePersistentChat';
+import { usePersistentChat, STORAGE_KEY } from '../hooks/usePersistentChat';
 import { DefaultChatTransport } from 'ai';
 
 const transport = new DefaultChatTransport({ api: '/api/coach' });
@@ -27,14 +27,22 @@ describe('usePersistentChat', () => {
 
   it('reads initial messages from sessionStorage', () => {
     const stored = [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'hello' }] }];
-    sessionStorage.setItem('coach-messages', JSON.stringify(stored));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
     const { result } = renderHook(() => usePersistentChat({ transport }));
     expect(result.current.messages).toEqual(stored);
   });
 
   it('handles corrupt sessionStorage gracefully', () => {
-    sessionStorage.setItem('coach-messages', 'not-valid-json{{{');
+    sessionStorage.setItem(STORAGE_KEY, 'not-valid-json{{{');
     const { result } = renderHook(() => usePersistentChat({ transport }));
     expect(result.current.messages).toEqual([]);
+  });
+
+  it('writes messages to sessionStorage when messages are present', () => {
+    const stored = [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'hi' }] }];
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    renderHook(() => usePersistentChat({ transport }));
+    const written = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? '[]');
+    expect(written).toEqual(stored);
   });
 });
