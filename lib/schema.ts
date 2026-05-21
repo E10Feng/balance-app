@@ -2,6 +2,7 @@ import {
   pgTable, text, integer, boolean,
   timestamp, date, primaryKey,
 } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 import type { AdapterAccountType } from 'next-auth/adapters';
 
 // ── NextAuth required tables ──────────────────────────────────
@@ -91,3 +92,15 @@ export const exerciseLogs = pgTable('exercise_log', {
   durationSeconds: integer('duration_seconds'),
   userRating: text('user_rating').$type<UserRating>(),
 });
+
+export const userExercisePlanRelations = relations(userExercisePlan, ({ one }) => ({
+  exercise: one(exercises, { fields: [userExercisePlan.exerciseId], references: [exercises.id] }),
+}));
+
+export const sessionLogRelations = relations(sessionLogs, ({ many }) => ({
+  exerciseLogs: many(exerciseLogs),
+}));
+
+export const exerciseLogRelations = relations(exerciseLogs, ({ one }) => ({
+  session: one(sessionLogs, { fields: [exerciseLogs.sessionId], references: [sessionLogs.id] }),
+}));
