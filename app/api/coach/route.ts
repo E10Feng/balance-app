@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth';
-import { streamText, stepCountIs } from 'ai';
-import type { ModelMessage } from 'ai';
+import { streamText, stepCountIs, convertToModelMessages } from 'ai';
+import type { UIMessage } from 'ai';
 import { google } from '@ai-sdk/google';
 import { NextResponse } from 'next/server';
 import { makeCoachTools } from '@/lib/coach/tools';
@@ -17,8 +17,9 @@ export async function POST(req: Request) {
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const userId = session.user.id;
 
-  const { messages } = await req.json() as { messages: Array<{ role: string; content: string }> };
-  const lastMessage = messages[messages.length - 1]?.content ?? '';
+  const { messages } = await req.json() as { messages: UIMessage[] };
+  const lastParts = messages[messages.length - 1]?.parts ?? [];
+  const lastMessage = lastParts.filter((p) => p.type === 'text').map((p) => (p as { type: 'text'; text: string }).text).join('');
 
   if (containsPainKeywords(lastMessage)) {
     const safetyResult = streamText({
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
       todayPlan: plan.map((p) => ({ name: p.exercise.name, level: p.level })),
       recentSummary: 'Use get_user_history tool to fetch recent sessions.',
     }),
-    messages: messages as ModelMessage[],
+    messages: await convertToModelMessages(messages),
     tools: makeCoachTools(userId, date),
     stopWhen: stepCountIs(5),
   });
