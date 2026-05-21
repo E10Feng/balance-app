@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
   if (containsPainKeywords(lastMessage)) {
     const safetyResult = streamText({
-      model: google('gemini-2.5-flash-preview-05-20'),
+      model: google('gemini-2.5-flash-lite'),
       system: `Output this exact message word for word: "${PAIN_RESPONSE}"`,
       messages: [{ role: 'user', content: 'Output the safety message now.' }],
       stopWhen: stepCountIs(1),
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   });
 
   const result = streamText({
-    model: google('gemini-2.5-flash-preview-05-20'),
+    model: google('gemini-2.5-flash-lite'),
     system: buildSystemPrompt({
       userName: user?.name ?? 'friend',
       todayPlan: plan.map((p) => ({ name: p.exercise.name, level: p.level })),

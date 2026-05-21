@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
   // Fire-and-forget: trigger coach to update tomorrow's plan without blocking the response
   generateText({
-    model: google('gemini-2.5-flash-preview-05-20'),
+    model: google('gemini-2.5-flash-lite'),
     system: buildSystemPrompt({
       userName: user?.name ?? 'friend',
       todayPlan: plan.map((p) => ({ name: p.exercise.name, level: p.level })),
