@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## About This App
+
+**BalanceWell** is a mobile-first web app for community-dwelling older adults (65+) in Taiwan to reduce fall risk through daily balance exercises. Users follow guided exercise routines with Lottie animations, track their progress, and receive personalised coaching via an AI assistant (Coach Mei, powered by Gemini).
+
+Key design constraints:
+- **Audience:** Older adults who may struggle with technology — large text (20px min), large tap targets (56×56px min), simple navigation
+- **Language:** English (Chinese localisation is a future consideration)
+- **Platform:** Responsive web app optimised for mobile; installable as a PWA
+- **Budget:** Free-tier infrastructure (Neon Postgres, Resend, Google AI, Vercel)
+
 ## Working on This Codebase
 
 Always use the appropriate superpowers skill for the task at hand:
