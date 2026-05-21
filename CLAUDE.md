@@ -4,13 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Working on This Codebase
 
-Before making any complex changes (new features, architectural decisions, refactors spanning multiple files), always invoke the brainstorming skill first:
+Always use the appropriate superpowers skill for the task at hand:
 
-```
-/brainstorm
-```
+- **New features or complex changes** → brainstorm first, then write a plan, then execute with subagent-driven development
+- **Writing an implementation plan** → `superpowers:writing-plans`
+- **Executing a plan** → `superpowers:subagent-driven-development`
+- **Debugging** → `superpowers:debugging` (if available)
 
-This applies to Claude Code agents and subagents alike. Brainstorm before planning, plan before implementing.
+This applies to Claude Code agents and subagents alike. Never skip straight to implementation on non-trivial changes.
 
 ## Commands
 
