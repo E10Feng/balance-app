@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Working on This Codebase
+
+Before making any complex changes (new features, architectural decisions, refactors spanning multiple files), always invoke the brainstorming skill first:
+
+```
+/brainstorm
+```
+
+This applies to Claude Code agents and subagents alike. Brainstorm before planning, plan before implementing.
+
 ## Commands
 
 ```bash
