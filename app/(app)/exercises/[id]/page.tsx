@@ -16,6 +16,7 @@ export default function ExercisePlayerPage() {
 
   const level = Number(searchParams.get('level') ?? '1');
   const sessionId = searchParams.get('sessionId') ?? '';
+  const isLast = searchParams.get('isLast') === 'true';
 
   const exercise = EXERCISES.find((e) => e.id === id);
   const levelData = EXERCISE_LEVELS.find((l) => l.exerciseId === id && l.level === level);
@@ -50,7 +51,7 @@ export default function ExercisePlayerPage() {
   }, [running, remaining]);
 
   async function handleDone() {
-    await fetch('/api/logs', {
+    const res = await fetch('/api/logs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -61,7 +62,12 @@ export default function ExercisePlayerPage() {
         sessionId,
       }),
     });
-    router.back();
+    const data = await res.json() as { log: unknown; sessionId: string };
+    if (isLast) {
+      router.push(`/checkin?sessionId=${data.sessionId}`);
+    } else {
+      router.back();
+    }
   }
 
   if (!exercise || !levelData) {

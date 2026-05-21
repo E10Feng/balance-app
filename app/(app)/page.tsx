@@ -42,6 +42,8 @@ export default function HomePage() {
   const doneCount = data.plan.filter((p) => p.completed).length;
   const firstPending = data.plan.find((p) => !p.completed);
   const allDone = doneCount === data.plan.length;
+  const pendingItems = data.plan.filter((p) => !p.completed);
+  const lastPendingId = pendingItems[pendingItems.length - 1]?.exerciseId;
 
   return (
     <div className="p-6 pt-10 flex flex-col gap-6">
@@ -68,7 +70,9 @@ export default function HomePage() {
               durationSeconds={null}
               reps={null}
               completed={item.completed}
-              onClick={() => router.push(`/exercises/${item.exerciseId}?level=${item.level}&sessionId=${data.sessionId ?? ''}`)}
+              onClick={() => router.push(
+                `/exercises/${item.exerciseId}?level=${item.level}&sessionId=${data.sessionId ?? ''}&isLast=${item.exerciseId === lastPendingId}`
+              )}
             />
           ))}
         </div>
@@ -76,7 +80,9 @@ export default function HomePage() {
 
       {!allDone && firstPending && (
         <button
-          onClick={() => router.push(`/exercises/${firstPending.exerciseId}?level=${firstPending.level}&sessionId=${data.sessionId ?? ''}`)}
+          onClick={() => router.push(
+            `/exercises/${firstPending.exerciseId}?level=${firstPending.level}&sessionId=${data.sessionId ?? ''}&isLast=${firstPending.exerciseId === lastPendingId}`
+          )}
           className="w-full bg-primary text-white text-xl font-semibold py-5 rounded-2xl"
         >
           ▶ {doneCount === 0 ? 'Start Exercises' : 'Continue Exercises'}
