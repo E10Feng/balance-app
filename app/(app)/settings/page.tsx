@@ -18,6 +18,14 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
+    fetch('/api/user')
+      .then((r) => r.json())
+      .then((d: { reminderTime?: string }) => {
+        if (d.reminderTime) setReminderTime(d.reminderTime);
+      });
+  }, []);
+
+  useEffect(() => {
     const stored = localStorage.getItem('largeText');
     if (stored === 'true') {
       setLargeText(true);

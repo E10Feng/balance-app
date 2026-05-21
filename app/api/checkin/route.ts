@@ -35,8 +35,8 @@ export async function POST(req: Request) {
     with: { exercise: true },
   });
 
-  // Trigger coach silently to update tomorrow's plan
-  await generateText({
+  // Fire-and-forget: trigger coach to update tomorrow's plan without blocking the response
+  generateText({
     model: google('gemini-2.5-flash-preview-05-20'),
     system: buildSystemPrompt({
       userName: user?.name ?? 'friend',
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     }],
     tools: makeCoachTools(userId, date),
     stopWhen: stepCountIs(5),
-  });
+  }).catch(console.error);
 
   return NextResponse.json({ ok: true });
 }

@@ -4,6 +4,13 @@ import { db } from '@/lib/db';
 import { users } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 
+export async function GET() {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const user = await db.query.users.findFirst({ where: eq(users.id, session.user.id) });
+  return NextResponse.json({ reminderTime: user?.reminderTime ?? '09:00' });
+}
+
 export async function PATCH(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

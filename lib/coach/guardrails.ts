@@ -1,4 +1,4 @@
-const PAIN_KEYWORDS = ['pain', 'hurt', 'hurts', 'hurting', 'ache', 'aching', 'fall', 'fell', 'injured', 'injury'];
+const PAIN_KEYWORDS = ['pain', 'hurt', 'hurts', 'hurting', 'ache', 'aching', 'fall', 'fell', 'injured', 'injury', 'sore', 'soreness', 'dizzy', 'dizziness', 'nausea', 'nauseous', 'chest', 'breathe', 'breathing', 'faint', 'fainting', 'lightheaded', 'numbness', 'numb'];
 
 export const PAIN_RESPONSE = "I'm concerned about what you've shared. Please stop exercising and speak with your doctor before continuing. Your safety is the most important thing. 🌿";
 
