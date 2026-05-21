@@ -3,8 +3,8 @@ import { renderHook } from '@testing-library/react';
 
 // Mock @ai-sdk/react so we control the messages array
 vi.mock('@ai-sdk/react', () => ({
-  useChat: vi.fn(({ initialMessages }: { initialMessages?: unknown[] }) => ({
-    messages: initialMessages ?? [],
+  useChat: vi.fn(({ messages }: { messages?: unknown[] }) => ({
+    messages: messages ?? [],
     sendMessage: vi.fn(),
     status: 'idle' as const,
   })),

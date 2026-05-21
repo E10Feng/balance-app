@@ -20,7 +20,7 @@ export function usePersistentChat(options: Parameters<typeof useChat>[0]) {
   if (initialMessages.current === undefined) {
     initialMessages.current = readStoredMessages();
   }
-  const chat = useChat({ ...options, initialMessages: initialMessages.current });
+  const chat = useChat({ ...options, messages: initialMessages.current });
 
   useEffect(() => {
     try {
