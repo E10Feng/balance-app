@@ -1,5 +1,5 @@
 'use client';
-import { useChat } from '@ai-sdk/react';
+import { usePersistentChat } from '@/lib/hooks/usePersistentChat';
 import { DefaultChatTransport } from 'ai';
 import CoachMei, { type MeiState } from '@/components/CoachMei';
 import { useEffect, useRef, useState } from 'react';
@@ -14,7 +14,7 @@ const QUICK_REPLIES = [
 ];
 
 export default function CoachPage() {
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status } = usePersistentChat({
     transport: new DefaultChatTransport({ api: '/api/coach' }),
   });
   const [input, setInput] = useState('');
