@@ -25,7 +25,8 @@ export default function ExercisesPage() {
             <h2 className="font-heading text-xl text-dark mb-3">{label}</h2>
             <div className="flex flex-col gap-3">
               {group.map((ex) => {
-                const level1 = EXERCISE_LEVELS.find((l) => l.exerciseId === ex.id && l.level === 1)!;
+                const level1 = EXERCISE_LEVELS.find((l) => l.exerciseId === ex.id && l.level === 1);
+                if (!level1) return null;
                 return (
                   <ExerciseCard
                     key={ex.id}
