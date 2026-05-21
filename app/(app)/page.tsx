@@ -28,8 +28,16 @@ export default function HomePage() {
   const now = new Date();
 
   useEffect(() => {
-    fetch('/api/plan').then((r) => r.json()).then(setData);
-  }, []);
+    fetch('/api/plan')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.error === 'needs_onboarding') {
+          router.push('/onboarding');
+          return;
+        }
+        setData(d);
+      });
+  }, [router]);
 
   if (!data) {
     return (

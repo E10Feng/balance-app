@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { userExercisePlan, sessionLogs } from '@/lib/schema';
+import { userExercisePlan, sessionLogs, users } from '@/lib/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { buildDefaultPlan } from '@/lib/progression';
 import { EXERCISES } from '@/lib/seed-exercises';
@@ -12,6 +12,13 @@ export async function GET() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const userId = session.user.id;
+
+  // Check if user needs onboarding
+  const userRecord = await db.query.users.findFirst({ where: eq(users.id, userId) });
+  if (!userRecord?.name) {
+    return NextResponse.json({ error: 'needs_onboarding' });
+  }
+
   const date = today();
 
   let plan = await db.query.userExercisePlan.findMany({
