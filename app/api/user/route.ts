@@ -8,7 +8,11 @@ export async function GET() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const user = await db.query.users.findFirst({ where: eq(users.id, session.user.id) });
-  return NextResponse.json({ reminderTime: user?.reminderTime ?? '09:00' });
+  return NextResponse.json({
+    name: user?.name ?? null,
+    reminderTime: user?.reminderTime ?? '09:00',
+    createdAt: user?.createdAt ?? null,
+  });
 }
 
 export async function PATCH(req: Request) {
