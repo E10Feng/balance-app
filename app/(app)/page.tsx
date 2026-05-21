@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import StreakCard from '@/components/StreakCard';
 import ExerciseCard from '@/components/ExerciseCard';
 
@@ -55,13 +56,21 @@ export default function HomePage() {
 
   return (
     <div className="p-6 pt-10 flex flex-col gap-6">
-      <div>
-        <p className="text-mid text-sm font-medium uppercase tracking-widest">
-          {DAYS[now.getDay()]}, {MONTHS[now.getMonth()]} {now.getDate()}
-        </p>
-        <h1 className="font-heading text-4xl font-semibold text-dark mt-1 leading-tight">
-          {allDone ? 'Well done!' : now.getHours() < 12 ? 'Good morning,' : now.getHours() < 17 ? 'Good afternoon,' : 'Good evening,'}
-        </h1>
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-mid text-sm font-medium uppercase tracking-widest">
+            {DAYS[now.getDay()]}, {MONTHS[now.getMonth()]} {now.getDate()}
+          </p>
+          <h1 className="font-heading text-4xl font-semibold text-dark mt-1 leading-tight">
+            {allDone ? 'Well done!' : now.getHours() < 12 ? 'Good morning,' : now.getHours() < 17 ? 'Good afternoon,' : 'Good evening,'}
+          </h1>
+        </div>
+        <Link href="/settings" className="w-12 h-12 rounded-full bg-surface flex items-center justify-center mt-1 flex-shrink-0">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mid)" strokeWidth="1.8" strokeLinecap="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+          </svg>
+        </Link>
       </div>
 
       <StreakCard streak={data.streak} />
