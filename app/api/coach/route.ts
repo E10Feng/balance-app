@@ -21,7 +21,13 @@ export async function POST(req: Request) {
   const lastMessage = messages[messages.length - 1]?.content ?? '';
 
   if (containsPainKeywords(lastMessage)) {
-    return NextResponse.json({ type: 'text', text: PAIN_RESPONSE });
+    const safetyResult = streamText({
+      model: google('gemini-2.5-flash-preview-05-20'),
+      system: `Output this exact message word for word: "${PAIN_RESPONSE}"`,
+      messages: [{ role: 'user', content: 'Output the safety message now.' }],
+      stopWhen: stepCountIs(1),
+    });
+    return safetyResult.toUIMessageStreamResponse();
   }
 
   const date = today();
