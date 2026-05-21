@@ -10,6 +10,7 @@ export async function GET() {
   const user = await db.query.users.findFirst({ where: eq(users.id, session.user.id) });
   return NextResponse.json({
     name: user?.name ?? null,
+    email: user?.email ?? null,
     reminderTime: user?.reminderTime ?? '09:00',
     createdAt: user?.createdAt ?? null,
   });

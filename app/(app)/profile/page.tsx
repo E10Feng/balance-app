@@ -1,9 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 
-type UserData = { name: string | null; reminderTime: string; createdAt: string | null };
+type UserData = { name: string | null; email: string | null; reminderTime: string; createdAt: string | null };
 type ProgressData = { streak: number };
 
 function formatDate(iso: string | null): string {
@@ -17,7 +16,6 @@ const REMINDER_LABELS: Record<string, string> = {
 };
 
 export default function ProfilePage() {
-  const { data: session } = useSession();
   const [user, setUser] = useState<UserData | null>(null);
   const [streak, setStreak] = useState<number | null>(null);
 
@@ -44,7 +42,7 @@ export default function ProfilePage() {
           </div>
           <div>
             <p className="font-heading text-2xl font-semibold text-dark">{user.name ?? '—'}</p>
-            <p className="text-mid text-base">{session?.user?.email ?? '—'}</p>
+            <p className="text-mid text-base">{user.email ?? '—'}</p>
           </div>
         </div>
 
