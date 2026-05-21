@@ -93,6 +93,15 @@ export const exerciseLogs = pgTable('exercise_log', {
   userRating: text('user_rating').$type<UserRating>(),
 });
 
+export const pushSubscriptions = pgTable('push_subscription', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  endpoint: text('endpoint').notNull().unique(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const userExercisePlanRelations = relations(userExercisePlan, ({ one }) => ({
   exercise: one(exercises, { fields: [userExercisePlan.exerciseId], references: [exercises.id] }),
 }));
@@ -103,4 +112,8 @@ export const sessionLogRelations = relations(sessionLogs, ({ many }) => ({
 
 export const exerciseLogRelations = relations(exerciseLogs, ({ one }) => ({
   session: one(sessionLogs, { fields: [exerciseLogs.sessionId], references: [sessionLogs.id] }),
+}));
+
+export const pushSubscriptionRelations = relations(pushSubscriptions, ({ one }) => ({
+  user: one(users, { fields: [pushSubscriptions.userId], references: [users.id] }),
 }));

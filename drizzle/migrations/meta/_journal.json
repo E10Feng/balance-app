@@ -8,6 +8,13 @@
       "when": 1779317313450,
       "tag": "0000_salty_bloodscream",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779372841456,
+      "tag": "0001_typical_gamma_corps",
+      "breakpoints": true
     }
   ]
 }

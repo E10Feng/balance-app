@@ -13,6 +13,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const [reminderTime, setReminderTime] = useState('09:00');
   const [largeText, setLargeText] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -22,6 +23,9 @@ export default function SettingsPage() {
       setLargeText(true);
       document.documentElement.style.fontSize = '24px';
     }
+    if ('Notification' in window && Notification.permission === 'granted') {
+      setPushEnabled(true);
+    }
   }, []);
 
   function toggleLargeText() {
@@ -29,6 +33,41 @@ export default function SettingsPage() {
     setLargeText(next);
     localStorage.setItem('largeText', String(next));
     document.documentElement.style.fontSize = next ? '24px' : '20px';
+  }
+
+  async function togglePush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (pushEnabled) {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await sub.unsubscribe();
+        await fetch('/api/push/unsubscribe', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+        });
+      }
+      setPushEnabled(false);
+    } else {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return;
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+      });
+      const subJson = sub.toJSON();
+      await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          endpoint: subJson.endpoint,
+          keys: subJson.keys,
+        }),
+      });
+      setPushEnabled(true);
+    }
   }
 
   async function save() {
@@ -86,6 +125,20 @@ export default function SettingsPage() {
           className={`w-14 h-8 rounded-full transition-colors relative ${largeText ? 'bg-primary' : 'bg-muted'}`}
         >
           <span className={`absolute top-1 block w-6 h-6 rounded-full bg-white transition-transform ${largeText ? 'left-7' : 'left-1'}`} />
+        </button>
+      </div>
+
+      <div className="bg-surface rounded-2xl p-5 flex items-center justify-between">
+        <div>
+          <p className="font-heading text-xl text-dark">Push Notifications</p>
+          <p className="text-mid text-base mt-1">Get reminded in your browser</p>
+        </div>
+        <button
+          onClick={togglePush}
+          aria-label={pushEnabled ? 'Disable push notifications' : 'Enable push notifications'}
+          className={`w-14 h-8 rounded-full transition-colors relative ${pushEnabled ? 'bg-primary' : 'bg-muted'}`}
+        >
+          <span className={`absolute top-1 block w-6 h-6 rounded-full bg-white transition-transform ${pushEnabled ? 'left-7' : 'left-1'}`} />
         </button>
       </div>
 
