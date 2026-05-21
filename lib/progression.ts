@@ -1,4 +1,4 @@
-type HistoryEntry = {
+export type HistoryEntry = {
   completed: boolean;
   userRating: 'too_easy' | 'just_right' | 'too_hard' | null;
 };
@@ -30,7 +30,7 @@ export function buildDefaultPlan(
 ): Array<{ exerciseId: string; level: number; order: number }> {
   return exerciseIds.slice(0, 4).map((exerciseId, i) => ({
     exerciseId,
-    level: currentLevels[exerciseId] ?? 1,
+    level: Math.min(5, Math.max(1, currentLevels[exerciseId] ?? 1)),
     order: i + 1,
   }));
 }
