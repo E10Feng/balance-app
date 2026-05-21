@@ -32,7 +32,7 @@ export default function BottomNav() {
               aria-current={active ? 'page' : undefined}
               className="flex-1 flex flex-col items-center justify-center"
             >
-              <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${active ? 'bg-primary/90' : 'bg-primary'}`}>
+              <div className="w-14 h-14 rounded-full flex items-center justify-center bg-primary">
                 <Icon active={true} />
               </div>
             </Link>
