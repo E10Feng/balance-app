@@ -12,13 +12,14 @@ const NAV = [
 export default function BottomNav() {
   const path = usePathname();
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface border-t-2 border-primary-light flex max-w-md mx-auto z-50">
+    <nav aria-label="App navigation" className="fixed bottom-0 left-0 right-0 h-20 bg-surface border-t-2 border-primary-light flex max-w-md mx-auto z-50">
       {NAV.map(({ href, label, icon: Icon }) => {
         const active = path === href;
         return (
           <Link
             key={href}
             href={href}
+            aria-current={active ? 'page' : undefined}
             className={`flex-1 flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors relative ${active ? 'text-primary' : 'text-muted'}`}
           >
             {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-b-full" />}
