@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import { db } from '@/lib/db';
 import { users, pushSubscriptions } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 import { sendEmailReminder, sendPushReminder } from '@/lib/reminders';
 
 export async function POST(req: Request) {
-  const authHeader = req.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const authHeader = req.headers.get('authorization') ?? '';
+  const expected = `Bearer ${process.env.CRON_SECRET ?? ''}`;
+  const safe = authHeader.length === expected.length &&
+    timingSafeEqual(Buffer.from(authHeader), Buffer.from(expected));
+  if (!safe) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

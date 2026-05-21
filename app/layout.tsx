@@ -1,12 +1,15 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Script from 'next/script';
+
+export const viewport: Viewport = {
+  themeColor: '#C4714A',
+};
 
 export const metadata: Metadata = {
   title: 'BalanceWell',
   description: 'Daily balance exercises to reduce fall risk',
   manifest: '/manifest.json',
-  themeColor: '#C4714A',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

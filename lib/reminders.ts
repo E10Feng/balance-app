@@ -1,5 +1,8 @@
 import { Resend } from 'resend';
 import { sendPushNotification } from './push';
+import { db } from '@/lib/db';
+import { pushSubscriptions } from '@/lib/schema';
+import { eq } from 'drizzle-orm';
 
 const resend = new Resend(process.env.AUTH_RESEND_KEY);
 
@@ -23,12 +26,20 @@ export async function sendEmailReminder(to: string, name: string) {
 }
 
 export async function sendPushReminder(
-  subscription: { endpoint: string; p256dh: string; auth: string },
+  subscription: { id: string; endpoint: string; p256dh: string; auth: string },
   name: string
 ) {
-  await sendPushNotification(subscription, {
-    title: 'Time for your exercises! 🌿',
-    body: `Hey ${name}, your daily balance routine is ready.`,
-    url: '/',
-  });
+  try {
+    await sendPushNotification(subscription, {
+      title: 'Time for your exercises! 🌿',
+      body: `Hey ${name}, your daily balance routine is ready.`,
+      url: '/',
+    });
+  } catch (err) {
+    const status = (err as { statusCode?: number }).statusCode;
+    if (status === 410 || status === 404) {
+      await db.delete(pushSubscriptions).where(eq(pushSubscriptions.id, subscription.id));
+    }
+    throw err;
+  }
 }
