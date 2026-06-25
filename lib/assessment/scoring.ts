@@ -1,4 +1,6 @@
-import type { BmiCategory } from '@/lib/schema';
+import type { Sex, AssessmentStation, BmiCategory } from '@/lib/schema';
+import { SIT_REACH_NORMS, BACK_SCRATCH_NORMS, UP_AND_GO_NORMS, STEP_TEST_NORMS, type NormTable } from './norms';
+import { cmToInches } from './units';
 
 export function computeBMI(weightKg: number, heightCm: number): { bmi: number; category: BmiCategory } {
   const heightM = heightCm / 100;
@@ -10,9 +12,6 @@ export function computeBMI(weightKg: number, heightCm: number): { bmi: number; c
   else category = 'obesity';
   return { bmi, category };
 }
-
-import type { Sex } from '@/lib/schema';
-import { SIT_REACH_NORMS, BACK_SCRATCH_NORMS, UP_AND_GO_NORMS, STEP_TEST_NORMS, type NormTable } from './norms';
 
 export type AssessmentCategory = 'below_average' | 'average' | 'above_average';
 export type TableStation = 'sit_reach' | 'back_scratch' | 'up_and_go' | 'step_test';
@@ -136,8 +135,6 @@ export function computeOverallScore(domains: DomainCategories): OverallResult {
   return { total, overallCategory, missingDomains, strengths, maintain, areasForImprovement, recommendations };
 }
 
-import type { AssessmentStation } from '@/lib/schema';
-
 export const STATION_TO_DOMAIN: Record<AssessmentStation, Domain> = {
   chair_stand: 'lower_body_strength',
   arm_curl: 'upper_body_strength',
@@ -156,4 +153,34 @@ export function computeAge(dateOfBirth: string, asOf: Date = new Date()): number
     (asOf.getMonth() === dob.getMonth() && asOf.getDate() >= dob.getDate());
   if (!hasHadBirthdayThisYear) age -= 1;
   return age;
+}
+
+const INCH_CONVERTED_STATIONS: AssessmentStation[] = ['sit_reach', 'back_scratch'];
+const DIRECT_TABLE_STATIONS: AssessmentStation[] = ['up_and_go', 'step_test'];
+
+export function categorizeStationResult(
+  station: AssessmentStation,
+  score: number,
+  age: number | null,
+  sex: Sex | null,
+  context: { heightCm?: number | null; bmi?: number | null }
+): AssessmentCategory | null {
+  if (age === null || sex === null) return null;
+
+  if (station === 'chair_stand' || station === 'arm_curl') return null;
+
+  if (INCH_CONVERTED_STATIONS.includes(station)) {
+    return categorizeTableStation(station as TableStation, cmToInches(score), age, sex);
+  }
+
+  if (DIRECT_TABLE_STATIONS.includes(station)) {
+    return categorizeTableStation(station as TableStation, score, age, sex);
+  }
+
+  if (station === 'walk_test') {
+    if (context.heightCm === undefined || context.heightCm === null) return null;
+    return categorizeWalkTest(score, age, sex, context.heightCm, context.bmi ?? 0);
+  }
+
+  return null;
 }

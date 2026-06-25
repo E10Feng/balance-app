@@ -273,3 +273,50 @@ describe('computeAge', () => {
     expect(computeAge('1960-06-25', new Date('2026-06-25'))).toBe(66);
   });
 });
+
+import { categorizeStationResult } from '../scoring';
+
+describe('categorizeStationResult', () => {
+  it('returns null for chair_stand regardless of inputs', () => {
+    expect(categorizeStationResult('chair_stand', 15, 65, 'male', {})).toBeNull();
+  });
+
+  it('returns null for arm_curl regardless of inputs', () => {
+    expect(categorizeStationResult('arm_curl', 15, 65, 'male', {})).toBeNull();
+  });
+
+  it('converts cm to inches before scoring sit_reach', () => {
+    // 10.16 cm = 4 inches, which is above the men 60-64 average band (averageHigh 4.0)
+    expect(categorizeStationResult('sit_reach', 10.16, 60, 'male', {})).toBe('average');
+    expect(categorizeStationResult('sit_reach', 12.7, 60, 'male', {})).toBe('above_average');
+  });
+
+  it('converts cm to inches before scoring back_scratch', () => {
+    expect(categorizeStationResult('back_scratch', 0, 60, 'male', {})).toBe('average');
+  });
+
+  it('scores up_and_go directly in seconds with no conversion', () => {
+    expect(categorizeStationResult('up_and_go', 3.0, 65, 'female', {})).toBe('above_average');
+  });
+
+  it('scores step_test directly in reps with no conversion', () => {
+    expect(categorizeStationResult('step_test', 200, 60, 'male', {})).toBe('above_average');
+  });
+
+  it('scores walk_test using the predicted-distance formula when height is available', () => {
+    const result = categorizeStationResult('walk_test', 1000, 65, 'male', { heightCm: 170, bmi: 23 });
+    expect(['below_average', 'average', 'above_average']).toContain(result);
+  });
+
+  it('returns null for walk_test when height is unavailable', () => {
+    expect(categorizeStationResult('walk_test', 500, 65, 'male', {})).toBeNull();
+  });
+
+  it('returns null when age is null (unknown date of birth)', () => {
+    expect(categorizeStationResult('sit_reach', 0, null, 'male', {})).toBeNull();
+  });
+
+  it('returns null when sex is null (not set on profile)', () => {
+    expect(categorizeStationResult('sit_reach', 0, 65, null, {})).toBeNull();
+  });
+});
