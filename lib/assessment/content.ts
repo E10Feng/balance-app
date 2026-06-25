@@ -1,3 +1,8 @@
+// UI routing key for the 7 dashboard station slots — distinct from the `AssessmentStation`
+// DB enum in `lib/schema.ts`. `height_weight` has no DB station-result counterpart; it writes
+// directly to `assessment_session`'s BMI fields rather than an `assessment_station_result` row.
+// `walk_step` is a single UI slot that fans out to one of two DB stations (`walk_test` or
+// `step_test`) depending on the session's `walkTestVariant`.
 export type StationRouteKey =
   | 'chair_stand' | 'arm_curl' | 'height_weight'
   | 'sit_reach' | 'back_scratch' | 'up_and_go' | 'walk_step';
