@@ -147,3 +147,13 @@ export const STATION_TO_DOMAIN: Record<AssessmentStation, Domain> = {
   walk_test: 'aerobic_endurance',
   step_test: 'aerobic_endurance',
 };
+
+export function computeAge(dateOfBirth: string, asOf: Date = new Date()): number {
+  const dob = new Date(dateOfBirth);
+  let age = asOf.getFullYear() - dob.getFullYear();
+  const hasHadBirthdayThisYear =
+    asOf.getMonth() > dob.getMonth() ||
+    (asOf.getMonth() === dob.getMonth() && asOf.getDate() >= dob.getDate());
+  if (!hasHadBirthdayThisYear) age -= 1;
+  return age;
+}

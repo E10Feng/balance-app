@@ -257,3 +257,19 @@ describe('STATION_TO_DOMAIN', () => {
     expect(STATION_TO_DOMAIN.step_test).toBe('aerobic_endurance');
   });
 });
+
+import { computeAge } from '../scoring';
+
+describe('computeAge', () => {
+  it('computes age when the birthday has already passed this year', () => {
+    expect(computeAge('1960-01-15', new Date('2026-06-25'))).toBe(66);
+  });
+
+  it('computes age when the birthday has not yet occurred this year', () => {
+    expect(computeAge('1960-12-15', new Date('2026-06-25'))).toBe(65);
+  });
+
+  it('computes age on the exact birthday', () => {
+    expect(computeAge('1960-06-25', new Date('2026-06-25'))).toBe(66);
+  });
+});
