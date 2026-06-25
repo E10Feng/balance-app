@@ -151,9 +151,14 @@ Pure functions, no DB access, mirroring the existing `lib/progression.ts` patter
 - Vitest unit tests for `lib/assessment/scoring.ts` and `lib/assessment/units.ts`, mirroring `lib/__tests__/progression.test.ts`: norm-table boundary values for each station/age-band/sex combination, BMI category boundaries, the age-out-of-range path, and overall-score aggregation (including the missing-domain case).
 - No E2E/browser testing in scope for this phase.
 
+## Addendum (post-approval): missing Chair Stand / Arm Curl norms
+
+The source spec references "previously provided" norms tables for Chair Stand and Arm Curl that were never actually included (unlike sit-and-reach, back-scratch, up-and-go, and the step test, which do have full age×sex tables inline). Decision: ship these two stations **raw-score-only** in this phase — `categorizeStation` returns `null` for them unconditionally, the same code path already used for the age-out-of-range case. Consequently, **the overall 6–18 point score cannot compute in this phase** (2 of its 6 required domains are always missing) and the report shows "Overall score unavailable — Chair Stand and Arm Curl norms not yet configured" instead of a number. No score-math rework will be needed later: adding the two norm tables to `lib/assessment/norms.ts` is sufficient to make the overall score start working.
+
 ## Open items for later phases
 
 - Exercise library expansion (new categories, richer exercise metadata) — separate sub-project.
 - Using assessment results to drive exercise prescription and starting levels — separate sub-project, depends on this one.
 - Reassessment scheduling (8wk/12wk/6mo) and trend comparison UI.
 - PDF export of the final report.
+- Sourcing and adding Chair Stand / Arm Curl norm tables (see addendum above), which will unlock the overall fitness score.
