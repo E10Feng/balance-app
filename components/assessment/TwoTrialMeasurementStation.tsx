@@ -57,7 +57,7 @@ export default function TwoTrialMeasurementStation({ higherIsBetter, onSave }: P
             type="number"
             step={0.5}
             value={manualOverride ?? best}
-            onChange={(e) => setManualOverride(Number(e.target.value))}
+            onChange={(e) => setManualOverride(e.target.value === '' ? null : Number(e.target.value))}
             className="border-2 border-primary-light rounded-xl px-4 py-3 text-xl text-dark"
           />
           <button

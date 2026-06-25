@@ -11,10 +11,11 @@ type Props = {
 
 export default function DistanceAfterTimerStation({ durationSeconds, onSave }: Props) {
   const [completed, setCompleted] = useState(false);
-  const [distanceM, setDistanceM] = useState(0);
+  const [distanceM, setDistanceM] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
+    if (distanceM === null) return;
     setSaving(true);
     await onSave({ rawData: { distanceM }, score: distanceM, unit: 'meters' });
     setSaving(false);
@@ -31,13 +32,13 @@ export default function DistanceAfterTimerStation({ durationSeconds, onSave }: P
             type="number"
             min={0}
             step={0.1}
-            value={distanceM}
-            onChange={(e) => setDistanceM(Number(e.target.value))}
+            value={distanceM ?? ''}
+            onChange={(e) => setDistanceM(e.target.value === '' ? null : Number(e.target.value))}
             className="border-2 border-primary-light rounded-xl px-4 py-3 text-xl text-dark"
           />
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || distanceM === null}
             className="w-full py-5 rounded-2xl bg-primary text-white text-xl font-semibold disabled:opacity-60"
           >
             {saving ? 'Saving...' : 'Save & Continue'}

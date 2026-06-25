@@ -81,7 +81,7 @@ export default function TwoTrialStopwatchStation({ onSave }: { onSave: (payload:
             step={0.1}
             min={0}
             value={manualOverride ?? best}
-            onChange={(e) => setManualOverride(Number(e.target.value))}
+            onChange={(e) => setManualOverride(e.target.value === '' ? null : Number(e.target.value))}
             className="border-2 border-primary-light rounded-xl px-4 py-3 text-xl text-dark"
           />
           <button

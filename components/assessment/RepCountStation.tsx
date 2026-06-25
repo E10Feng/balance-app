@@ -52,7 +52,7 @@ export default function RepCountStation({ durationSeconds, extraFields, onSave }
             type="number"
             min={0}
             value={manualReps ?? reps}
-            onChange={(e) => setManualReps(Number(e.target.value))}
+            onChange={(e) => setManualReps(e.target.value === '' ? null : Number(e.target.value))}
             className="border-2 border-primary-light rounded-xl px-4 py-3 text-xl text-dark"
           />
           <button
