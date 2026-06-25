@@ -135,3 +135,15 @@ export function computeOverallScore(domains: DomainCategories): OverallResult {
 
   return { total, overallCategory, missingDomains, strengths, maintain, areasForImprovement, recommendations };
 }
+
+import type { AssessmentStation } from '@/lib/schema';
+
+export const STATION_TO_DOMAIN: Record<AssessmentStation, Domain> = {
+  chair_stand: 'lower_body_strength',
+  arm_curl: 'upper_body_strength',
+  sit_reach: 'lower_body_flexibility',
+  back_scratch: 'upper_body_flexibility',
+  up_and_go: 'agility_balance',
+  walk_test: 'aerobic_endurance',
+  step_test: 'aerobic_endurance',
+};

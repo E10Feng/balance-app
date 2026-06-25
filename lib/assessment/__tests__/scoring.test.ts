@@ -243,3 +243,17 @@ describe('computeOverallScore', () => {
     );
   });
 });
+
+import { STATION_TO_DOMAIN } from '../scoring';
+
+describe('STATION_TO_DOMAIN', () => {
+  it('maps every station to its domain', () => {
+    expect(STATION_TO_DOMAIN.chair_stand).toBe('lower_body_strength');
+    expect(STATION_TO_DOMAIN.arm_curl).toBe('upper_body_strength');
+    expect(STATION_TO_DOMAIN.sit_reach).toBe('lower_body_flexibility');
+    expect(STATION_TO_DOMAIN.back_scratch).toBe('upper_body_flexibility');
+    expect(STATION_TO_DOMAIN.up_and_go).toBe('agility_balance');
+    expect(STATION_TO_DOMAIN.walk_test).toBe('aerobic_endurance');
+    expect(STATION_TO_DOMAIN.step_test).toBe('aerobic_endurance');
+  });
+});
