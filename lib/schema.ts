@@ -1,6 +1,6 @@
 import {
   pgTable, text, integer, boolean,
-  timestamp, date, primaryKey, real, jsonb,
+  timestamp, date, primaryKey, real, jsonb, unique,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import type { AdapterAccountType } from 'next-auth/adapters';
@@ -140,7 +140,9 @@ export const assessmentStationResults = pgTable('assessment_station_result', {
   category: text('category').$type<AssessmentCategory>(),
   unit: text('unit').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (t) => ({
+  uniqueSessionStation: unique().on(t.sessionId, t.station),
+}));
 
 export const userExercisePlanRelations = relations(userExercisePlan, ({ one }) => ({
   exercise: one(exercises, { fields: [userExercisePlan.exerciseId], references: [exercises.id] }),

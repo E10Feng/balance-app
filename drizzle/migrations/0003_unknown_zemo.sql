@@ -1,0 +1,1 @@
+ALTER TABLE "assessment_station_result" ADD CONSTRAINT "assessment_station_result_session_id_station_unique" UNIQUE("session_id","station");

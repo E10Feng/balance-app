@@ -41,23 +41,13 @@ export async function PUT(
     bmi: foundSession.bmi,
   });
 
-  const existing = await db.query.assessmentStationResults.findFirst({
-    where: and(
-      eq(assessmentStationResults.sessionId, id),
-      eq(assessmentStationResults.station, stationKey)
-    ),
-  });
-
-  const values = { rawData, score, unit, category };
-
-  const [result] = existing
-    ? await db.update(assessmentStationResults)
-        .set(values)
-        .where(eq(assessmentStationResults.id, existing.id))
-        .returning()
-    : await db.insert(assessmentStationResults)
-        .values({ sessionId: id, station: stationKey, ...values })
-        .returning();
+  const [result] = await db.insert(assessmentStationResults)
+    .values({ sessionId: id, station: stationKey, rawData, score, unit, category })
+    .onConflictDoUpdate({
+      target: [assessmentStationResults.sessionId, assessmentStationResults.station],
+      set: { rawData, score, unit, category },
+    })
+    .returning();
 
   return NextResponse.json({ result });
 }
