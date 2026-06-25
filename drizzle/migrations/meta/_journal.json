@@ -15,6 +15,13 @@
       "when": 1779372841456,
       "tag": "0001_typical_gamma_corps",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782402106160,
+      "tag": "0002_next_mister_sinister",
+      "breakpoints": true
     }
   ]
 }

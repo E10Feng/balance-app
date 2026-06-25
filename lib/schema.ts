@@ -1,11 +1,13 @@
 import {
   pgTable, text, integer, boolean,
-  timestamp, date, primaryKey,
+  timestamp, date, primaryKey, real, jsonb,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import type { AdapterAccountType } from 'next-auth/adapters';
 
 // ── NextAuth required tables ──────────────────────────────────
+export type Sex = 'male' | 'female';
+
 export const users = pgTable('user', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: text('name'),
@@ -13,6 +15,8 @@ export const users = pgTable('user', {
   emailVerified: timestamp('emailVerified', { mode: 'date' }),
   image: text('image'),
   reminderTime: text('reminder_time').notNull().default('09:00'),
+  sex: text('sex').$type<Sex>(),
+  dateOfBirth: date('date_of_birth'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -102,6 +106,42 @@ export const pushSubscriptions = pgTable('push_subscription', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// ── Senior Fitness Assessment ────────────────────────────────
+export type AssessmentStatus = 'in_progress' | 'completed';
+export type AssessmentStation =
+  | 'chair_stand' | 'arm_curl' | 'sit_reach' | 'back_scratch'
+  | 'up_and_go' | 'walk_test' | 'step_test';
+export type AssessmentCategory = 'below_average' | 'average' | 'above_average';
+export type BmiCategory = 'underweight' | 'normal' | 'overweight' | 'obesity';
+export type WalkTestVariant = 'walk' | 'step';
+
+export const assessmentSessions = pgTable('assessment_session', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  dateOfTest: date('date_of_test').notNull(),
+  status: text('status').$type<AssessmentStatus>().notNull().default('in_progress'),
+  heightCm: real('height_cm'),
+  weightKg: real('weight_kg'),
+  bmi: real('bmi'),
+  bmiCategory: text('bmi_category').$type<BmiCategory>(),
+  overallScore: integer('overall_score'),
+  overallCategory: text('overall_category').$type<AssessmentCategory>(),
+  walkTestVariant: text('walk_test_variant').$type<WalkTestVariant>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  completedAt: timestamp('completed_at'),
+});
+
+export const assessmentStationResults = pgTable('assessment_station_result', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  sessionId: text('session_id').notNull().references(() => assessmentSessions.id, { onDelete: 'cascade' }),
+  station: text('station').$type<AssessmentStation>().notNull(),
+  rawData: jsonb('raw_data').notNull(),
+  score: real('score'),
+  category: text('category').$type<AssessmentCategory>(),
+  unit: text('unit').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const userExercisePlanRelations = relations(userExercisePlan, ({ one }) => ({
   exercise: one(exercises, { fields: [userExercisePlan.exerciseId], references: [exercises.id] }),
 }));
@@ -116,4 +156,12 @@ export const exerciseLogRelations = relations(exerciseLogs, ({ one }) => ({
 
 export const pushSubscriptionRelations = relations(pushSubscriptions, ({ one }) => ({
   user: one(users, { fields: [pushSubscriptions.userId], references: [users.id] }),
+}));
+
+export const assessmentSessionRelations = relations(assessmentSessions, ({ many }) => ({
+  stationResults: many(assessmentStationResults),
+}));
+
+export const assessmentStationResultRelations = relations(assessmentStationResults, ({ one }) => ({
+  session: one(assessmentSessions, { fields: [assessmentStationResults.sessionId], references: [assessmentSessions.id] }),
 }));
