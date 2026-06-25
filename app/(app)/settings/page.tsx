@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
+import type { Sex } from '@/lib/schema';
 
 const REMINDER_TIMES = ['07:00', '08:00', '09:00', '10:00', '14:00', '16:00', '18:00', '20:00'];
 const REMINDER_LABELS: Record<string, string> = {
@@ -12,6 +13,8 @@ const REMINDER_LABELS: Record<string, string> = {
 export default function SettingsPage() {
   const router = useRouter();
   const [reminderTime, setReminderTime] = useState('09:00');
+  const [sex, setSex] = useState<Sex | null>(null);
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [largeText, setLargeText] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -20,8 +23,10 @@ export default function SettingsPage() {
   useEffect(() => {
     fetch('/api/user')
       .then((r) => r.json())
-      .then((d: { reminderTime?: string }) => {
+      .then((d: { reminderTime?: string; sex?: Sex | null; dateOfBirth?: string | null }) => {
         if (d.reminderTime) setReminderTime(d.reminderTime);
+        if (d.sex) setSex(d.sex);
+        if (d.dateOfBirth) setDateOfBirth(d.dateOfBirth);
       });
   }, []);
 
@@ -83,7 +88,7 @@ export default function SettingsPage() {
     await fetch('/api/user', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reminderTime }),
+      body: JSON.stringify({ reminderTime, sex, dateOfBirth: dateOfBirth || undefined }),
     });
     setSaving(false);
     setSaved(true);
@@ -119,6 +124,40 @@ export default function SettingsPage() {
               {REMINDER_LABELS[t]}
             </button>
           ))}
+        </div>
+      </div>
+
+      <div className="bg-surface rounded-2xl p-5 flex flex-col gap-4">
+        <p className="font-heading text-xl text-dark">Fitness Assessment Profile</p>
+        <div>
+          <p className="text-dark text-base mb-2">Sex (used for assessment scoring norms)</p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setSex('male')}
+              className={`flex-1 py-3 rounded-xl text-lg font-medium border-2 ${
+                sex === 'male' ? 'bg-primary text-white border-primary' : 'bg-bg text-dark border-primary-light'
+              }`}
+            >
+              Male
+            </button>
+            <button
+              onClick={() => setSex('female')}
+              className={`flex-1 py-3 rounded-xl text-lg font-medium border-2 ${
+                sex === 'female' ? 'bg-primary text-white border-primary' : 'bg-bg text-dark border-primary-light'
+              }`}
+            >
+              Female
+            </button>
+          </div>
+        </div>
+        <div>
+          <p className="text-dark text-base mb-2">Date of birth</p>
+          <input
+            type="date"
+            value={dateOfBirth}
+            onChange={(e) => setDateOfBirth(e.target.value)}
+            className="w-full border-2 border-primary-light rounded-xl px-4 py-3 text-lg text-dark"
+          />
         </div>
       </div>
 

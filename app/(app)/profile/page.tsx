@@ -67,6 +67,13 @@ export default function ProfilePage() {
       </div>
 
       <Link
+        href="/assessment"
+        className="w-full bg-primary text-white text-xl font-semibold py-5 rounded-2xl text-center"
+      >
+        Fitness Assessment
+      </Link>
+
+      <Link
         href="/settings"
         className="w-full bg-surface border-2 border-primary-light text-primary text-xl font-semibold py-5 rounded-2xl text-center"
       >
