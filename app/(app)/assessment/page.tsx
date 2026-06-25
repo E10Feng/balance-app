@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getStationContent, type StationRouteKey } from '@/lib/assessment/content';
-import type { AssessmentStation, WalkTestVariant, Sex } from '@/lib/schema';
+import type { AssessmentStation, AssessmentCategory, WalkTestVariant, Sex } from '@/lib/schema';
 
 type StationResult = { station: AssessmentStation };
 type SessionDetail = {
@@ -13,7 +13,23 @@ type SessionDetail = {
   walkTestVariant: WalkTestVariant | null;
   stationResults: StationResult[];
 };
+type SessionSummary = {
+  id: string;
+  status: 'in_progress' | 'completed';
+  dateOfTest: string;
+  overallCategory: AssessmentCategory | null;
+};
 type UserProfile = { name: string | null; sex: Sex | null; dateOfBirth: string | null };
+
+const CATEGORY_LABELS: Record<AssessmentCategory, string> = {
+  below_average: 'Below Average',
+  average: 'Average',
+  above_average: 'Above Average',
+};
+
+function formatDateOfTest(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
 
 const DASHBOARD_STATIONS: StationRouteKey[] = [
   'chair_stand', 'arm_curl', 'height_weight', 'sit_reach', 'back_scratch', 'up_and_go', 'walk_step',
@@ -42,14 +58,16 @@ function isStationDone(session: SessionDetail, key: StationRouteKey): boolean {
 export default function AssessmentDashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [activeSession, setActiveSession] = useState<SessionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
-  async function loadActiveSession() {
+  async function loadSessions() {
     const listRes = await fetch('/api/assessment/sessions');
-    const { sessions } = (await listRes.json()) as { sessions: { id: string; status: string }[] };
-    const inProgress = sessions.find((s) => s.status === 'in_progress');
+    const { sessions: list } = (await listRes.json()) as { sessions: SessionSummary[] };
+    setSessions(list);
+    const inProgress = list.find((s) => s.status === 'in_progress');
     if (!inProgress) {
       setActiveSession(null);
       return;
@@ -61,7 +79,7 @@ export default function AssessmentDashboardPage() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([fetch('/api/user').then((r) => r.json()), loadActiveSession()]).then(([userData]) => {
+    Promise.all([fetch('/api/user').then((r) => r.json()), loadSessions()]).then(([userData]) => {
       setUser(userData);
       setLoading(false);
     });
@@ -70,7 +88,7 @@ export default function AssessmentDashboardPage() {
   async function handleStartAssessment() {
     setCreating(true);
     await fetch('/api/assessment/sessions', { method: 'POST' });
-    await loadActiveSession();
+    await loadSessions();
     setCreating(false);
   }
 
@@ -81,7 +99,7 @@ export default function AssessmentDashboardPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ walkTestVariant: variant }),
     });
-    await loadActiveSession();
+    await loadSessions();
   }
 
   if (loading) return <div className="p-6 text-mid text-xl">Loading...</div>;
@@ -108,13 +126,36 @@ export default function AssessmentDashboardPage() {
       </div>
 
       {!activeSession ? (
-        <button
-          onClick={handleStartAssessment}
-          disabled={creating}
-          className="w-full py-5 rounded-2xl bg-primary text-white text-xl font-semibold disabled:opacity-60"
-        >
-          {creating ? 'Starting...' : 'Start New Assessment'}
-        </button>
+        <>
+          <button
+            onClick={handleStartAssessment}
+            disabled={creating}
+            className="w-full py-5 rounded-2xl bg-primary text-white text-xl font-semibold disabled:opacity-60"
+          >
+            {creating ? 'Starting...' : 'Start New Assessment'}
+          </button>
+
+          {sessions.filter((s) => s.status === 'completed').length > 0 && (
+            <div className="flex flex-col gap-3">
+              <p className="text-dark text-lg font-medium">Past Assessments</p>
+              {sessions
+                .filter((s) => s.status === 'completed')
+                .sort((a, b) => b.dateOfTest.localeCompare(a.dateOfTest))
+                .map((s) => (
+                  <Link
+                    key={s.id}
+                    href={`/assessment/${s.id}/report`}
+                    className="bg-surface rounded-2xl p-4 flex justify-between items-center"
+                  >
+                    <span className="text-dark text-base font-medium">{formatDateOfTest(s.dateOfTest)}</span>
+                    <span className="text-mid text-base font-medium">
+                      {s.overallCategory ? CATEGORY_LABELS[s.overallCategory] : 'Not scored'}
+                    </span>
+                  </Link>
+                ))}
+            </div>
+          )}
+        </>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3">

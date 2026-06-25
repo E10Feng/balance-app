@@ -58,13 +58,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   const overall = computeOverallScore(domains);
+  const wasAlreadyCompleted = found.status === 'completed';
 
   const [updated] = await db.update(assessmentSessions)
     .set({
       status: 'completed',
-      completedAt: new Date(),
       overallScore: overall.total,
       overallCategory: overall.overallCategory,
+      ...(wasAlreadyCompleted ? {} : { completedAt: new Date() }),
     })
     .where(eq(assessmentSessions.id, id))
     .returning();

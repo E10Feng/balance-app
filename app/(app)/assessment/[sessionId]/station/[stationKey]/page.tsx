@@ -25,7 +25,17 @@ export default function StationPage() {
       .then((d: { session: SessionDetail }) => setSession(d.session));
   }, [sessionId]);
 
+  useEffect(() => {
+    if (session && stationKey === 'walk_step' && !session.walkTestVariant) {
+      router.push('/assessment');
+    }
+  }, [session, stationKey, router]);
+
   if (!session) return <div className="p-6 text-mid text-xl">Loading...</div>;
+
+  if (stationKey === 'walk_step' && !session.walkTestVariant) {
+    return <div className="p-6 text-mid text-xl">Redirecting...</div>;
+  }
 
   const content = getStationContent(stationKey, session.walkTestVariant ?? undefined);
 
