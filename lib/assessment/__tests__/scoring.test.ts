@@ -103,3 +103,143 @@ describe('categorizeWalkTest', () => {
     expect(categorizeWalkTest(500, 50, 'male', 170)).toBeNull();
   });
 });
+
+import { computeOverallScore, type DomainCategories } from '../scoring';
+
+describe('computeOverallScore', () => {
+  it('returns null total when any domain is missing (Chair Stand/Arm Curl unscored)', () => {
+    const domains: DomainCategories = {
+      lower_body_strength: null,
+      upper_body_strength: null,
+      lower_body_flexibility: 'average',
+      upper_body_flexibility: 'average',
+      agility_balance: 'average',
+      aerobic_endurance: 'average',
+    };
+    const result = computeOverallScore(domains);
+    expect(result.total).toBeNull();
+    expect(result.overallCategory).toBeNull();
+    expect(result.missingDomains).toEqual(['lower_body_strength', 'upper_body_strength']);
+  });
+
+  it('computes a below-average total (6-9) when all domains are below average', () => {
+    const domains: DomainCategories = {
+      lower_body_strength: 'below_average',
+      upper_body_strength: 'below_average',
+      lower_body_flexibility: 'below_average',
+      upper_body_flexibility: 'below_average',
+      agility_balance: 'below_average',
+      aerobic_endurance: 'below_average',
+    };
+    const result = computeOverallScore(domains);
+    expect(result.total).toBe(6);
+    expect(result.overallCategory).toBe('below_average');
+  });
+
+  it('computes an average total (10-14)', () => {
+    const domains: DomainCategories = {
+      lower_body_strength: 'average',
+      upper_body_strength: 'average',
+      lower_body_flexibility: 'average',
+      upper_body_flexibility: 'average',
+      agility_balance: 'average',
+      aerobic_endurance: 'average',
+    };
+    const result = computeOverallScore(domains);
+    expect(result.total).toBe(12);
+    expect(result.overallCategory).toBe('average');
+  });
+
+  it('computes an above-average total (15-18)', () => {
+    const domains: DomainCategories = {
+      lower_body_strength: 'above_average',
+      upper_body_strength: 'above_average',
+      lower_body_flexibility: 'above_average',
+      upper_body_flexibility: 'above_average',
+      agility_balance: 'above_average',
+      aerobic_endurance: 'above_average',
+    };
+    const result = computeOverallScore(domains);
+    expect(result.total).toBe(18);
+    expect(result.overallCategory).toBe('above_average');
+  });
+
+  it('sorts domains into strengths/maintain/areasForImprovement', () => {
+    const domains: DomainCategories = {
+      lower_body_strength: 'above_average',
+      upper_body_strength: 'average',
+      lower_body_flexibility: 'below_average',
+      upper_body_flexibility: 'average',
+      agility_balance: 'below_average',
+      aerobic_endurance: 'above_average',
+    };
+    const result = computeOverallScore(domains);
+    expect(result.strengths).toEqual(['lower_body_strength', 'aerobic_endurance']);
+    expect(result.maintain).toEqual(['upper_body_strength', 'upper_body_flexibility']);
+    expect(result.areasForImprovement).toEqual(['lower_body_flexibility', 'agility_balance']);
+  });
+
+  it('recommends lower-body strengthening when chair stand is below average', () => {
+    const domains: DomainCategories = {
+      lower_body_strength: 'below_average',
+      upper_body_strength: 'average',
+      lower_body_flexibility: 'average',
+      upper_body_flexibility: 'average',
+      agility_balance: 'average',
+      aerobic_endurance: 'average',
+    };
+    expect(computeOverallScore(domains).recommendations).toContain('Recommend lower-body strengthening.');
+  });
+
+  it('recommends balance/agility training when up-and-go is below average', () => {
+    const domains: DomainCategories = {
+      lower_body_strength: 'average',
+      upper_body_strength: 'average',
+      lower_body_flexibility: 'average',
+      upper_body_flexibility: 'average',
+      agility_balance: 'below_average',
+      aerobic_endurance: 'average',
+    };
+    expect(computeOverallScore(domains).recommendations).toContain('Recommend balance and agility training.');
+  });
+
+  it('recommends flexibility work when either flexibility domain is below average', () => {
+    const domains: DomainCategories = {
+      lower_body_strength: 'average',
+      upper_body_strength: 'average',
+      lower_body_flexibility: 'average',
+      upper_body_flexibility: 'below_average',
+      agility_balance: 'average',
+      aerobic_endurance: 'average',
+    };
+    expect(computeOverallScore(domains).recommendations).toContain('Recommend flexibility and mobility exercises.');
+  });
+
+  it('recommends aerobic training when endurance is below average', () => {
+    const domains: DomainCategories = {
+      lower_body_strength: 'average',
+      upper_body_strength: 'average',
+      lower_body_flexibility: 'average',
+      upper_body_flexibility: 'average',
+      agility_balance: 'average',
+      aerobic_endurance: 'below_average',
+    };
+    expect(computeOverallScore(domains).recommendations).toContain(
+      'Recommend aerobic endurance training such as walking or step-in-place progression.'
+    );
+  });
+
+  it('adds a combined message when 2+ domains are below average', () => {
+    const domains: DomainCategories = {
+      lower_body_strength: 'below_average',
+      upper_body_strength: 'below_average',
+      lower_body_flexibility: 'average',
+      upper_body_flexibility: 'average',
+      agility_balance: 'average',
+      aerobic_endurance: 'average',
+    };
+    expect(computeOverallScore(domains).recommendations).toContain(
+      'Multiple areas were below average. A comprehensive fall-prevention program may be beneficial.'
+    );
+  });
+});

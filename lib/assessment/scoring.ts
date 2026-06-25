@@ -65,3 +65,73 @@ export function categorizeWalkTest(
   if (diffRatio < -0.1) return 'below_average';
   return 'average';
 }
+
+export type Domain =
+  | 'lower_body_strength'
+  | 'upper_body_strength'
+  | 'lower_body_flexibility'
+  | 'upper_body_flexibility'
+  | 'agility_balance'
+  | 'aerobic_endurance';
+
+export type DomainCategories = Record<Domain, AssessmentCategory | null>;
+
+export type OverallResult = {
+  total: number | null;
+  overallCategory: AssessmentCategory | null;
+  missingDomains: Domain[];
+  strengths: Domain[];
+  maintain: Domain[];
+  areasForImprovement: Domain[];
+  recommendations: string[];
+};
+
+const ALL_DOMAINS: Domain[] = [
+  'lower_body_strength',
+  'upper_body_strength',
+  'lower_body_flexibility',
+  'upper_body_flexibility',
+  'agility_balance',
+  'aerobic_endurance',
+];
+
+const DOMAIN_POINTS: Record<AssessmentCategory, number> = {
+  below_average: 1,
+  average: 2,
+  above_average: 3,
+};
+
+export function computeOverallScore(domains: DomainCategories): OverallResult {
+  const missingDomains = ALL_DOMAINS.filter((d) => domains[d] === null);
+  const strengths = ALL_DOMAINS.filter((d) => domains[d] === 'above_average');
+  const maintain = ALL_DOMAINS.filter((d) => domains[d] === 'average');
+  const areasForImprovement = ALL_DOMAINS.filter((d) => domains[d] === 'below_average');
+
+  let total: number | null = null;
+  let overallCategory: AssessmentCategory | null = null;
+  if (missingDomains.length === 0) {
+    total = ALL_DOMAINS.reduce((sum, d) => sum + DOMAIN_POINTS[domains[d] as AssessmentCategory], 0);
+    if (total <= 9) overallCategory = 'below_average';
+    else if (total <= 14) overallCategory = 'average';
+    else overallCategory = 'above_average';
+  }
+
+  const recommendations: string[] = [];
+  if (domains.lower_body_strength === 'below_average') {
+    recommendations.push('Recommend lower-body strengthening.');
+  }
+  if (domains.agility_balance === 'below_average') {
+    recommendations.push('Recommend balance and agility training.');
+  }
+  if (domains.lower_body_flexibility === 'below_average' || domains.upper_body_flexibility === 'below_average') {
+    recommendations.push('Recommend flexibility and mobility exercises.');
+  }
+  if (domains.aerobic_endurance === 'below_average') {
+    recommendations.push('Recommend aerobic endurance training such as walking or step-in-place progression.');
+  }
+  if (areasForImprovement.length >= 2) {
+    recommendations.push('Multiple areas were below average. A comprehensive fall-prevention program may be beneficial.');
+  }
+
+  return { total, overallCategory, missingDomains, strengths, maintain, areasForImprovement, recommendations };
+}
