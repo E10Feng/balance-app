@@ -21,6 +21,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: '/login',
   },
+  trustHost: true,
   session: { strategy: 'database' },
   callbacks: {
     session: async ({ session, user }) => {
