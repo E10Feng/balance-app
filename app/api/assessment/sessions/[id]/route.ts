@@ -38,7 +38,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       .set({ walkTestVariant: body.walkTestVariant })
       .where(eq(assessmentSessions.id, id))
       .returning();
-    return NextResponse.json({ session: updated });
+    return NextResponse.json({ session: { ...updated, stationResults: found.stationResults } });
   }
 
   if (body.status !== 'completed') {
@@ -70,5 +70,5 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .where(eq(assessmentSessions.id, id))
     .returning();
 
-  return NextResponse.json({ session: updated, overall });
+  return NextResponse.json({ session: { ...updated, stationResults: found.stationResults }, overall });
 }
