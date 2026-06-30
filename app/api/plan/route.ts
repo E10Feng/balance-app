@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { userExercisePlan, sessionLogs, users } from '@/lib/schema';
+import { userExercisePlan, sessionLogs, users, userCategoryLevels } from '@/lib/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { buildDefaultPlan } from '@/lib/progression';
+import { buildDailyPlan } from '@/lib/prescription/daily-plan';
 import { EXERCISES } from '@/lib/seed-exercises';
+import type { ExerciseCategory } from '@/lib/schema';
 
 const today = () => new Date().toISOString().split('T')[0];
 
@@ -13,11 +14,8 @@ export async function GET() {
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const userId = session.user.id;
 
-  // Check if user needs onboarding
   const userRecord = await db.query.users.findFirst({ where: eq(users.id, userId) });
-  if (!userRecord?.name) {
-    return NextResponse.json({ error: 'needs_onboarding' });
-  }
+  if (!userRecord?.name) return NextResponse.json({ error: 'needs_onboarding' });
 
   const date = today();
 
@@ -50,10 +48,36 @@ export async function GET() {
 }
 
 async function seedTodaysPlan(userId: string, date: string) {
-  const defaultExerciseIds = EXERCISES.slice(0, 4).map((e) => e.id);
-  const entries = buildDefaultPlan(defaultExerciseIds);
+  const defaultLevels: Record<ExerciseCategory, number> = {
+    lower_body_strength: 2, upper_body_strength: 2,
+    lower_body_flexibility: 2, upper_body_flexibility: 2,
+    agility_balance: 2, aerobic_endurance: 2,
+    warm_up: 2, cool_down: 2,
+  };
+
+  const categoryLevelRows = await db.query.userCategoryLevels.findMany({
+    where: eq(userCategoryLevels.userId, userId),
+  });
+  const categoryLevels = { ...defaultLevels };
+  for (const row of categoryLevelRows) {
+    categoryLevels[row.category] = row.level;
+  }
+
+  const exercisesByCategory: Record<ExerciseCategory, string[]> = {
+    lower_body_strength: [], upper_body_strength: [],
+    lower_body_flexibility: [], upper_body_flexibility: [],
+    agility_balance: [], aerobic_endurance: [],
+    warm_up: [], cool_down: [],
+  };
+  for (const ex of EXERCISES) {
+    exercisesByCategory[ex.category].push(ex.id);
+  }
+
+  const dayOfMonth = new Date().getDate();
+  const entries = buildDailyPlan(categoryLevels, exercisesByCategory, dayOfMonth);
   const rows = entries.map((e) => ({ ...e, id: crypto.randomUUID(), userId, scheduledDate: date }));
   await db.insert(userExercisePlan).values(rows);
+
   return db.query.userExercisePlan.findMany({
     where: and(eq(userExercisePlan.userId, userId), eq(userExercisePlan.scheduledDate, date)),
     with: { exercise: true },
@@ -70,15 +94,11 @@ async function computeStreak(userId: string): Promise<number> {
   let streak = 0;
   const check = new Date();
   for (const log of logs) {
-    const diff = Math.round(
-      (check.getTime() - new Date(log.date).getTime()) / 86400000
-    );
+    const diff = Math.round((check.getTime() - new Date(log.date).getTime()) / 86400000);
     if (diff === streak && log.completedAt) {
       streak++;
       check.setDate(check.getDate() - 1);
-    } else {
-      break;
-    }
+    } else break;
   }
   return streak;
 }
