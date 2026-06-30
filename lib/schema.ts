@@ -17,6 +17,7 @@ export const users = pgTable('user', {
   reminderTime: text('reminder_time').notNull().default('09:00'),
   sex: text('sex').$type<Sex>(),
   dateOfBirth: date('date_of_birth'),
+  reassessmentIntervalWeeks: integer('reassessment_interval_weeks'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -47,7 +48,15 @@ export const verificationTokens = pgTable('verificationToken', {
 }, (t) => ({ pk: primaryKey({ columns: [t.identifier, t.token] }) }));
 
 // ── App tables ────────────────────────────────────────────────
-export type ExerciseCategory = 'static_balance' | 'dynamic_balance' | 'strength_support';
+export type ExerciseCategory =
+  | 'lower_body_strength'
+  | 'upper_body_strength'
+  | 'lower_body_flexibility'
+  | 'upper_body_flexibility'
+  | 'agility_balance'
+  | 'aerobic_endurance'
+  | 'warm_up'
+  | 'cool_down';
 export type UserRating = 'too_easy' | 'just_right' | 'too_hard';
 
 export const exercises = pgTable('exercise', {
@@ -105,6 +114,16 @@ export const pushSubscriptions = pgTable('push_subscription', {
   auth: text('auth').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const userCategoryLevels = pgTable('user_category_level', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  category: text('category').$type<ExerciseCategory>().notNull(),
+  level: integer('level').notNull().default(2),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (t) => ({
+  uniqueUserCategory: unique().on(t.userId, t.category),
+}));
 
 // ── Senior Fitness Assessment ────────────────────────────────
 export type AssessmentStatus = 'in_progress' | 'completed';
@@ -166,4 +185,8 @@ export const assessmentSessionRelations = relations(assessmentSessions, ({ many 
 
 export const assessmentStationResultRelations = relations(assessmentStationResults, ({ one }) => ({
   session: one(assessmentSessions, { fields: [assessmentStationResults.sessionId], references: [assessmentSessions.id] }),
+}));
+
+export const userCategoryLevelRelations = relations(userCategoryLevels, ({ one }) => ({
+  user: one(users, { fields: [userCategoryLevels.userId], references: [users.id] }),
 }));

@@ -27,7 +27,12 @@ export function makeCoachTools(userId: string, todayDate: string) {
     get_exercise_library: tool({
       description: 'Get available exercises and their 5 difficulty levels',
       inputSchema: z.object({
-        category: z.enum(['static_balance', 'dynamic_balance', 'strength_support']).optional()
+        category: z.enum([
+          'lower_body_strength', 'upper_body_strength',
+          'lower_body_flexibility', 'upper_body_flexibility',
+          'agility_balance', 'aerobic_endurance',
+          'warm_up', 'cool_down',
+        ]).optional()
           .describe('Filter by category, or omit for all'),
       }),
       execute: async (input) => {

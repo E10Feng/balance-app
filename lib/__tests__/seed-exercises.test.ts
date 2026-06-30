@@ -14,7 +14,12 @@ describe('seed-exercises', () => {
   });
 
   it('all categories are valid', () => {
-    const valid = ['static_balance', 'dynamic_balance', 'strength_support'];
+    const valid = [
+      'lower_body_strength', 'upper_body_strength',
+      'lower_body_flexibility', 'upper_body_flexibility',
+      'agility_balance', 'aerobic_endurance',
+      'warm_up', 'cool_down',
+    ];
     for (const ex of EXERCISES) {
       expect(valid).toContain(ex.category);
     }
