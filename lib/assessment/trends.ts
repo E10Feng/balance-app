@@ -37,6 +37,8 @@ const ALL_DOMAINS: Domain[] = [
   'agility_balance', 'aerobic_endurance',
 ];
 
+const LOWER_IS_BETTER_DOMAINS: Set<Domain> = new Set(['agility_balance', 'upper_body_flexibility']);
+
 const CATEGORY_ORDER: Record<AssessmentCategory, number> = {
   below_average: 0, average: 1, above_average: 2,
 };
@@ -63,7 +65,7 @@ export function compareAssessments(
     const improved =
       prevCategory !== null && currCategory !== null
         ? CATEGORY_ORDER[currCategory] > CATEGORY_ORDER[prevCategory]
-        : scoreDelta !== null && scoreDelta > 0;
+        : scoreDelta !== null && (LOWER_IS_BETTER_DOMAINS.has(domain) ? scoreDelta < 0 : scoreDelta > 0);
 
     return {
       domain, previousCategory: prevCategory, currentCategory: currCategory,

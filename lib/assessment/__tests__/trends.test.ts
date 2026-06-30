@@ -59,6 +59,23 @@ describe('compareAssessments', () => {
     expect(aerobic).toHaveLength(1);
   });
 
+  it('deduplicates aerobic_endurance domain when both step_test and walk_test are in the same session', () => {
+    const prev = makeSession({ step_test: { score: 80, category: 'average' }, walk_test: { score: 400, category: 'average' } });
+    const curr = makeSession({ step_test: { score: 90, category: 'above_average' } });
+    const result = compareAssessments(prev, curr);
+    const aerobic = result.domainDeltas.filter((d) => d.domain === 'aerobic_endurance');
+    expect(aerobic).toHaveLength(1);
+  });
+
+  it('improved is true for agility_balance when score decreases (lower is better) and category is null', () => {
+    const prev = makeSession({ up_and_go: { score: 8.5, category: null } });
+    const curr = makeSession({ up_and_go: { score: 6.0, category: null } });
+    const result = compareAssessments(prev, curr);
+    const ab = result.domainDeltas.find((d) => d.domain === 'agility_balance');
+    expect(ab?.improved).toBe(true);
+    expect(ab?.scoreDelta).toBe(-2.5);
+  });
+
   it('returns exactly 6 domain deltas', () => {
     const prev = makeSession({});
     const curr = makeSession({});
