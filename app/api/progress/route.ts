@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { sessionLogs, userExercisePlan } from '@/lib/schema';
+import { sessionLogs, userCategoryLevels } from '@/lib/schema';
 import { eq, and, gte, desc } from 'drizzle-orm';
 
 export async function GET() {
@@ -9,8 +9,9 @@ export async function GET() {
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const userId = session.user.id;
 
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now);
+  thirtyDaysAgo.setDate(now.getDate() - 30);
   const cutoff = thirtyDaysAgo.toISOString().split('T')[0];
 
   const logs = await db.query.sessionLogs.findMany({
@@ -20,10 +21,19 @@ export async function GET() {
 
   const completedDates = logs.filter((l) => l.completedAt).map((l) => l.date);
 
-  const today = new Date().toISOString().split('T')[0];
-  const plan = await db.query.userExercisePlan.findMany({
-    where: and(eq(userExercisePlan.userId, userId), eq(userExercisePlan.scheduledDate, today)),
-    with: { exercise: true },
+  // Weekly: days since start of current week (Sunday)
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  const startOfWeekStr = startOfWeek.toISOString().split('T')[0];
+  const weeklyCount = logs.filter((l) => l.completedAt && l.date >= startOfWeekStr).length;
+
+  // Monthly: current calendar month
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const monthlyCount = logs.filter((l) => l.completedAt && l.date >= startOfMonth).length;
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+  const categoryLevelRows = await db.query.userCategoryLevels.findMany({
+    where: eq(userCategoryLevels.userId, userId),
   });
 
   let streak = 0;
@@ -34,5 +44,13 @@ export async function GET() {
     else break;
   }
 
-  return NextResponse.json({ completedDates, plan, streak });
+  return NextResponse.json({
+    completedDates,
+    streak,
+    categoryLevels: categoryLevelRows,
+    weeklyCount,
+    weeklyGoal: 7,
+    monthlyCount,
+    monthlyGoal: daysInMonth,
+  });
 }

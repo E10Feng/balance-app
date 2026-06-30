@@ -16,6 +16,7 @@ export async function GET() {
     sex: user?.sex ?? null,
     dateOfBirth: user?.dateOfBirth ?? null,
     createdAt: user?.createdAt ?? null,
+    reassessmentIntervalWeeks: user?.reassessmentIntervalWeeks ?? null,
   });
 }
 
@@ -23,11 +24,12 @@ export async function PATCH(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { name, reminderTime, sex, dateOfBirth } = (await req.json()) as {
+  const { name, reminderTime, sex, dateOfBirth, reassessmentIntervalWeeks } = (await req.json()) as {
     name?: string;
     reminderTime?: string;
     sex?: Sex;
     dateOfBirth?: string;
+    reassessmentIntervalWeeks?: number | null;
   };
 
   const [updated] = await db.update(users)
@@ -36,6 +38,7 @@ export async function PATCH(req: Request) {
       ...(reminderTime !== undefined && { reminderTime }),
       ...(sex !== undefined && { sex }),
       ...(dateOfBirth !== undefined && { dateOfBirth }),
+      ...(reassessmentIntervalWeeks !== undefined && { reassessmentIntervalWeeks }),
     })
     .where(eq(users.id, session.user.id))
     .returning();
