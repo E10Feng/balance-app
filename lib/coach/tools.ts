@@ -1,10 +1,15 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { sessionLogs, userExercisePlan } from '@/lib/schema';
+import { sessionLogs, userExercisePlan, userCategoryLevels } from '@/lib/schema';
 import { eq, and, gte, desc } from 'drizzle-orm';
 import { EXERCISES, EXERCISE_LEVELS } from '@/lib/seed-exercises';
 import { validatePlanUpdate } from './guardrails';
+import type { ExerciseCategory } from '@/lib/schema';
+
+const exerciseCategoryMap: Record<string, ExerciseCategory> = Object.fromEntries(
+  EXERCISES.map((e) => [e.id, e.category])
+);
 
 export function makeCoachTools(userId: string, todayDate: string) {
   return {
@@ -25,15 +30,14 @@ export function makeCoachTools(userId: string, todayDate: string) {
     }),
 
     get_exercise_library: tool({
-      description: 'Get available exercises and their 5 difficulty levels',
+      description: 'Get available exercises filtered by category. Use this to find exercises to swap in.',
       inputSchema: z.object({
         category: z.enum([
           'lower_body_strength', 'upper_body_strength',
           'lower_body_flexibility', 'upper_body_flexibility',
           'agility_balance', 'aerobic_endurance',
           'warm_up', 'cool_down',
-        ]).optional()
-          .describe('Filter by category, or omit for all'),
+        ] as const).optional().describe('Filter by category, or omit for all'),
       }),
       execute: async (input) => {
         const filtered = input.category
@@ -44,12 +48,12 @@ export function makeCoachTools(userId: string, todayDate: string) {
     }),
 
     update_exercise_plan: tool({
-      description: "Update the user's exercise plan for tomorrow. Call this after reviewing history.",
+      description: "Update the user's exercise plan for tomorrow. You may only swap exercises within the same category — never change categories or levels. Call get_exercise_library first to see available exercises.",
       inputSchema: z.object({
         exercises: z.array(z.object({
           exercise_id: z.string().describe('Exercise ID from the library'),
-          level: z.number().min(1).max(5).describe('Difficulty level 1-5'),
-        })).min(1).max(4),
+          level: z.number().min(1).max(3).describe('Difficulty level 1–3 (must match the fixed level for this category — the system will enforce this)'),
+        })).min(1).max(8),
       }),
       execute: async (input) => {
         const proposed = input.exercises;
@@ -57,15 +61,22 @@ export function makeCoachTools(userId: string, todayDate: string) {
         tomorrow.setDate(tomorrow.getDate() + 1);
         const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-        // Get current plan for level validation
-        const currentPlan = await db.query.userExercisePlan.findMany({
-          where: and(eq(userExercisePlan.userId, userId), eq(userExercisePlan.scheduledDate, todayDate)),
+        const categoryLevelRows = await db.query.userCategoryLevels.findMany({
+          where: eq(userCategoryLevels.userId, userId),
         });
-        const currentLevels = Object.fromEntries(currentPlan.map((p) => [p.exerciseId, p.level]));
+        const defaultLevel: Record<ExerciseCategory, number> = {
+          lower_body_strength: 2, upper_body_strength: 2,
+          lower_body_flexibility: 2, upper_body_flexibility: 2,
+          agility_balance: 2, aerobic_endurance: 2,
+          warm_up: 2, cool_down: 2,
+        };
+        const categoryLevels = { ...defaultLevel };
+        for (const row of categoryLevelRows) {
+          categoryLevels[row.category] = row.level;
+        }
 
-        const validated = validatePlanUpdate(proposed, currentLevels);
+        const validated = validatePlanUpdate(proposed, exerciseCategoryMap, categoryLevels);
 
-        // Replace tomorrow's plan
         await db.delete(userExercisePlan).where(
           and(eq(userExercisePlan.userId, userId), eq(userExercisePlan.scheduledDate, tomorrowStr))
         );

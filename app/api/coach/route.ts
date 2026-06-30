@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     model: coachModel,
     system: buildSystemPrompt({
       userName: user?.name ?? 'friend',
-      todayPlan: plan.map((p) => ({ name: p.exercise.name, level: p.level })),
+      todayPlan: plan.map((p) => ({ name: p.exercise.name, level: p.level, category: p.exercise.category })),
       recentSummary: 'Use get_user_history tool to fetch recent sessions.',
     }),
     messages: await convertToModelMessages(messages),
