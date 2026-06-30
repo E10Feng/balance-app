@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { exercises, exerciseLevels, userExercisePlan, userCategoryLevels } from '@/lib/schema';
+import { exercises, exerciseLevels, userExercisePlan, userCategoryLevels, exerciseLogs } from '@/lib/schema';
 import { EXERCISES, EXERCISE_LEVELS } from '@/lib/seed-exercises';
 
 export async function POST() {
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'Not allowed in production' }, { status: 403 });
   }
-  // Clear in dependency order so FKs don't block
+  // Clear in FK-safe order
   await db.delete(userExercisePlan);
   await db.delete(userCategoryLevels);
+  await db.delete(exerciseLogs);     // must come before exerciseLevels and exercises
   await db.delete(exerciseLevels);
   await db.delete(exercises);
   // Reseed
