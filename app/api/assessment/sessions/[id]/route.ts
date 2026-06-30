@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { assessmentSessions } from '@/lib/schema';
+import { assessmentSessions, userCategoryLevels } from '@/lib/schema';
 import { eq, and } from 'drizzle-orm';
 import { computeOverallScore, STATION_TO_DOMAIN, type Domain, type AssessmentCategory } from '@/lib/assessment/scoring';
+import { computeCategoryLevels } from '@/lib/prescription/levels';
+import type { ExerciseCategory } from '@/lib/schema';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -59,6 +61,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const overall = computeOverallScore(domains);
   const wasAlreadyCompleted = found.status === 'completed';
+
+  const newCategoryLevels = computeCategoryLevels(domains);
+  await Promise.all(
+    (Object.entries(newCategoryLevels) as [ExerciseCategory, number][]).map(([category, level]) =>
+      db.insert(userCategoryLevels)
+        .values({ id: crypto.randomUUID(), userId: session.user.id, category, level, updatedAt: new Date() })
+        .onConflictDoUpdate({
+          target: [userCategoryLevels.userId, userCategoryLevels.category],
+          set: { level, updatedAt: new Date() },
+        })
+    )
+  );
 
   const [updated] = await db.update(assessmentSessions)
     .set({
