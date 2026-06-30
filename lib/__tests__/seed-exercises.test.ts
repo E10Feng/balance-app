@@ -6,10 +6,10 @@ describe('seed-exercises', () => {
     expect(EXERCISES.length).toBeGreaterThanOrEqual(6);
   });
 
-  it('every exercise has 5 levels', () => {
+  it('every exercise has 3 levels', () => {
     for (const ex of EXERCISES) {
       const levels = EXERCISE_LEVELS.filter((l) => l.exerciseId === ex.id);
-      expect(levels).toHaveLength(5);
+      expect(levels).toHaveLength(3);
     }
   });
 
