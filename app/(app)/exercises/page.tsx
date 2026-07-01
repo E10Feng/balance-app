@@ -4,9 +4,14 @@ import ExerciseCard from '@/components/ExerciseCard';
 import { EXERCISES, EXERCISE_LEVELS } from '@/lib/seed-exercises';
 
 const CATEGORIES = [
-  { key: 'static_balance', label: 'Static Balance' },
-  { key: 'dynamic_balance', label: 'Dynamic Balance' },
-  { key: 'strength_support', label: 'Strength Support' },
+  { key: 'warm_up', label: 'Warm-Up' },
+  { key: 'lower_body_strength', label: 'Lower Body Strength' },
+  { key: 'upper_body_strength', label: 'Upper Body Strength' },
+  { key: 'agility_balance', label: 'Agility & Balance' },
+  { key: 'lower_body_flexibility', label: 'Lower Body Flexibility' },
+  { key: 'upper_body_flexibility', label: 'Upper Body Flexibility' },
+  { key: 'aerobic_endurance', label: 'Aerobic Endurance' },
+  { key: 'cool_down', label: 'Cool-Down' },
 ];
 
 export default function ExercisesPage() {
