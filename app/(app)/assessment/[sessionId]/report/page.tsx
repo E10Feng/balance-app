@@ -11,6 +11,7 @@ type SessionDetail = {
   dateOfTest: string;
   bmi: number | null;
   bmiCategory: BmiCategory | null;
+  overallScore: number | null;
   stationResults: StationResult[];
 };
 type OverallResult = {
@@ -83,7 +84,7 @@ export default function ReportPage() {
         .then((prevData?: { session: SessionDetail }) => {
           if (!prevData || !completion.session) return;
           const result = compareAssessments(
-            { stationResults: prevData.session.stationResults, overallScore: null },
+            { stationResults: prevData.session.stationResults, overallScore: prevData.session.overallScore },
             { stationResults: completion.session.stationResults, overallScore: completion.overall.total }
           );
           setComparison(result);

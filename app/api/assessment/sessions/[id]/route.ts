@@ -62,17 +62,19 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const overall = computeOverallScore(domains);
   const wasAlreadyCompleted = found.status === 'completed';
 
-  const newCategoryLevels = computeCategoryLevels(domains);
-  await Promise.all(
-    (Object.entries(newCategoryLevels) as [ExerciseCategory, number][]).map(([category, level]) =>
-      db.insert(userCategoryLevels)
-        .values({ id: crypto.randomUUID(), userId: session.user.id, category, level, updatedAt: new Date() })
-        .onConflictDoUpdate({
-          target: [userCategoryLevels.userId, userCategoryLevels.category],
-          set: { level, updatedAt: new Date() },
-        })
-    )
-  );
+  if (!wasAlreadyCompleted) {
+    const newCategoryLevels = computeCategoryLevels(domains);
+    await Promise.all(
+      (Object.entries(newCategoryLevels) as [ExerciseCategory, number][]).map(([category, level]) =>
+        db.insert(userCategoryLevels)
+          .values({ id: crypto.randomUUID(), userId: session.user.id, category, level, updatedAt: new Date() })
+          .onConflictDoUpdate({
+            target: [userCategoryLevels.userId, userCategoryLevels.category],
+            set: { level, updatedAt: new Date() },
+          })
+      )
+    );
+  }
 
   const [updated] = await db.update(assessmentSessions)
     .set({
