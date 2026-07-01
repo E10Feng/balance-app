@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import type { AssessmentStation, AssessmentCategory, BmiCategory } from '@/lib/schema';
+import { compareAssessments } from '@/lib/assessment/trends';
+import type { ComparisonResult } from '@/lib/assessment/trends';
 
 type StationResult = { station: AssessmentStation; score: number | null; category: AssessmentCategory | null; unit: string };
 type SessionDetail = {
@@ -53,6 +55,7 @@ export default function ReportPage() {
   const [session, setSession] = useState<SessionDetail | null>(null);
   const [overall, setOverall] = useState<OverallResult | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [comparison, setComparison] = useState<ComparisonResult | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -66,6 +69,26 @@ export default function ReportPage() {
       setSession(completion.session);
       setOverall(completion.overall);
       setUser(userData);
+
+      // Load comparison with previous session
+      fetch('/api/assessment/sessions')
+        .then((r) => r.json())
+        .then(({ sessions: allSessions }: { sessions: Array<{ id: string; status: string; dateOfTest: string; stationResults?: StationResult[] }> }) => {
+          const completedSessions = allSessions
+            .filter((s: { id: string; status: string }) => s.status === 'completed' && s.id !== sessionId)
+            .sort((a: { dateOfTest: string }, b: { dateOfTest: string }) => b.dateOfTest.localeCompare(a.dateOfTest));
+          if (completedSessions.length === 0) return null;
+          return fetch(`/api/assessment/sessions/${completedSessions[0].id}`).then((r) => r.json());
+        })
+        .then((prevData?: { session: SessionDetail }) => {
+          if (!prevData || !completion.session) return;
+          const result = compareAssessments(
+            { stationResults: prevData.session.stationResults, overallScore: null },
+            { stationResults: completion.session.stationResults, overallScore: completion.overall.total }
+          );
+          setComparison(result);
+        })
+        .catch(() => {}); // comparison is optional — don't break report if it fails
     });
   }, [sessionId]);
 
@@ -158,6 +181,26 @@ export default function ReportPage() {
           <p className="font-heading text-lg text-dark mb-2">Fall Prevention Recommendations</p>
           {overall.recommendations.map((rec, i) => (
             <p key={i} className="text-dark text-base">{rec}</p>
+          ))}
+        </div>
+      )}
+
+      {comparison && comparison.domainDeltas.some((d) => d.scoreDelta !== null) && (
+        <div className="bg-surface rounded-2xl p-5 flex flex-col gap-3">
+          <p className="font-heading text-xl text-dark">Compared to your last assessment</p>
+          {comparison.overallScoreDelta !== null && (
+            <p className="text-dark text-base">
+              Overall score: {comparison.overallScoreDelta > 0 ? '+' : ''}{comparison.overallScoreDelta} points
+            </p>
+          )}
+          {comparison.domainDeltas.filter((d) => d.scoreDelta !== null).map((d) => (
+            <div key={d.domain} className="flex justify-between items-center">
+              <span className="text-dark text-base">{DOMAIN_LABELS[d.domain]}</span>
+              <span className={`text-base font-semibold ${d.improved ? 'text-secondary' : d.scoreDelta !== null && d.scoreDelta < 0 ? 'text-primary' : 'text-mid'}`}>
+                {d.scoreDelta !== null && d.scoreDelta > 0 ? '+' : ''}{d.scoreDelta} {d.unit}
+                {d.categoryChanged && d.improved ? ' ↑' : d.categoryChanged ? ' ↓' : ''}
+              </span>
+            </div>
           ))}
         </div>
       )}
