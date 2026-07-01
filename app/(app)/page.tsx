@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import StreakCard from '@/components/StreakCard';
 import ExerciseCard from '@/components/ExerciseCard';
 
@@ -80,9 +81,9 @@ export default function HomePage() {
           <div className="flex-1">
             <p className="font-heading text-xl text-dark font-semibold">Get a personalised plan</p>
             <p className="text-mid text-base mt-1">Take your 10-minute fitness assessment to tailor your exercises to your current fitness level.</p>
-            <a href="/assessment" className="inline-block mt-3 bg-secondary text-white text-base font-semibold px-5 py-3 rounded-xl">
+            <Link href="/assessment" className="inline-block mt-3 bg-secondary text-white text-base font-semibold px-5 py-3 rounded-xl">
               Start Assessment
-            </a>
+            </Link>
           </div>
           <button onClick={dismissNudge} aria-label="Dismiss" className="text-mid text-2xl leading-none">×</button>
         </div>

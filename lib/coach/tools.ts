@@ -11,7 +11,7 @@ const exerciseCategoryMap: Record<string, ExerciseCategory> = Object.fromEntries
   EXERCISES.map((e) => [e.id, e.category])
 );
 
-export function makeCoachTools(userId: string, todayDate: string) {
+export function makeCoachTools(userId: string, _todayDate: string) {
   return {
     get_user_history: tool({
       description: "Get the user's exercise history and session check-ins for the last N days",
