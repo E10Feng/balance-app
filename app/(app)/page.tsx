@@ -25,19 +25,28 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 export default function HomePage() {
   const router = useRouter();
   const [data, setData] = useState<PlanData | null>(null);
+  const [showNudge, setShowNudge] = useState(false);
   const now = new Date();
 
   useEffect(() => {
-    fetch('/api/plan')
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.error === 'needs_onboarding') {
-          router.push('/onboarding');
-          return;
-        }
-        setData(d);
-      });
+    const dismissed = localStorage.getItem('assessmentNudgeDismissed') === 'true';
+    Promise.all([
+      fetch('/api/plan').then((r) => r.json()),
+      dismissed ? Promise.resolve(null) : fetch('/api/assessment/sessions').then((r) => r.json()),
+    ]).then(([planData, sessionData]) => {
+      if (planData.error === 'needs_onboarding') { router.push('/onboarding'); return; }
+      setData(planData);
+      if (!dismissed && sessionData) {
+        const hasCompleted = sessionData.sessions?.some((s: { status: string }) => s.status === 'completed');
+        setShowNudge(!hasCompleted);
+      }
+    });
   }, [router]);
+
+  function dismissNudge() {
+    localStorage.setItem('assessmentNudgeDismissed', 'true');
+    setShowNudge(false);
+  }
 
   if (!data) {
     return (
@@ -65,6 +74,19 @@ export default function HomePage() {
       </div>
 
       <StreakCard streak={data.streak} />
+
+      {showNudge && (
+        <div className="bg-secondary-light rounded-2xl p-5 flex items-start gap-4">
+          <div className="flex-1">
+            <p className="font-heading text-xl text-dark font-semibold">Get a personalised plan</p>
+            <p className="text-mid text-base mt-1">Take your 10-minute fitness assessment to tailor your exercises to your current fitness level.</p>
+            <a href="/assessment" className="inline-block mt-3 bg-secondary text-white text-base font-semibold px-5 py-3 rounded-xl">
+              Start Assessment
+            </a>
+          </div>
+          <button onClick={dismissNudge} aria-label="Dismiss" className="text-mid text-2xl leading-none">×</button>
+        </div>
+      )}
 
       <div>
         <h2 className="font-heading text-2xl font-medium text-dark mb-4">Today&apos;s exercises</h2>
