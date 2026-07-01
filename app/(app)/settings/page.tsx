@@ -19,14 +19,16 @@ export default function SettingsPage() {
   const [pushEnabled, setPushEnabled] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [reassessmentWeeks, setReassessmentWeeks] = useState<number | null>(null);
 
   useEffect(() => {
     fetch('/api/user')
       .then((r) => r.json())
-      .then((d: { reminderTime?: string; sex?: Sex | null; dateOfBirth?: string | null }) => {
+      .then((d: { reminderTime?: string; sex?: Sex | null; dateOfBirth?: string | null; reassessmentIntervalWeeks?: number | null }) => {
         if (d.reminderTime) setReminderTime(d.reminderTime);
         if (d.sex) setSex(d.sex);
         if (d.dateOfBirth) setDateOfBirth(d.dateOfBirth);
+        if (d.reassessmentIntervalWeeks !== undefined) setReassessmentWeeks(d.reassessmentIntervalWeeks ?? null);
       });
   }, []);
 
@@ -88,7 +90,7 @@ export default function SettingsPage() {
     await fetch('/api/user', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reminderTime, sex, dateOfBirth: dateOfBirth || undefined }),
+      body: JSON.stringify({ reminderTime, sex, dateOfBirth: dateOfBirth || undefined, reassessmentIntervalWeeks: reassessmentWeeks }),
     });
     setSaving(false);
     setSaved(true);
@@ -158,6 +160,24 @@ export default function SettingsPage() {
             onChange={(e) => setDateOfBirth(e.target.value)}
             className="w-full border-2 border-primary-light rounded-xl px-4 py-3 text-lg text-dark"
           />
+        </div>
+      </div>
+
+      <div className="bg-surface rounded-2xl p-5">
+        <p className="font-heading text-xl text-dark mb-4">Reassessment Reminder</p>
+        <p className="text-mid text-base mb-3">Get a nudge on the Assessment page when it&apos;s time to retest.</p>
+        <div className="grid grid-cols-2 gap-3">
+          {([8, 12, 26, null] as (number | null)[]).map((weeks) => (
+            <button
+              key={String(weeks)}
+              onClick={() => setReassessmentWeeks(weeks)}
+              className={`py-3 rounded-xl text-lg font-medium border-2 transition-all ${
+                reassessmentWeeks === weeks ? 'bg-primary text-white border-primary' : 'bg-bg text-dark border-primary-light'
+              }`}
+            >
+              {weeks === null ? 'Off' : weeks === 26 ? '6 months' : `${weeks} weeks`}
+            </button>
+          ))}
         </div>
       </div>
 
