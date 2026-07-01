@@ -4,7 +4,7 @@ import { exercises, exerciseLevels, userExercisePlan, userCategoryLevels, exerci
 import { EXERCISES, EXERCISE_LEVELS } from '@/lib/seed-exercises';
 
 export async function POST() {
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.VERCEL_ENV === 'production') {
     return NextResponse.json({ error: 'Not allowed in production' }, { status: 403 });
   }
   // Clear in FK-safe order
