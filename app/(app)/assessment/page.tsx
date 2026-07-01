@@ -19,7 +19,7 @@ type SessionSummary = {
   dateOfTest: string;
   overallCategory: AssessmentCategory | null;
 };
-type UserProfile = { name: string | null; sex: Sex | null; dateOfBirth: string | null };
+type UserProfile = { name: string | null; sex: Sex | null; dateOfBirth: string | null; reassessmentIntervalWeeks: number | null };
 
 const CATEGORY_LABELS: Record<AssessmentCategory, string> = {
   below_average: 'Below Average',
@@ -104,6 +104,16 @@ export default function AssessmentDashboardPage() {
 
   if (loading) return <div className="p-6 text-mid text-xl">Loading...</div>;
 
+  function isReassessmentDue(): boolean {
+    if (!user?.reassessmentIntervalWeeks) return false;
+    const completed = sessions.filter((s) => s.status === 'completed');
+    if (completed.length === 0) return false;
+    const latest = completed.sort((a, b) => b.dateOfTest.localeCompare(a.dateOfTest))[0];
+    const dueDate = new Date(latest.dateOfTest);
+    dueDate.setDate(dueDate.getDate() + user.reassessmentIntervalWeeks * 7);
+    return dueDate <= new Date();
+  }
+
   const allDone = activeSession ? DASHBOARD_STATIONS.every((k) => isStationDone(activeSession, k)) : false;
 
   return (
@@ -127,6 +137,16 @@ export default function AssessmentDashboardPage() {
 
       {!activeSession ? (
         <>
+          {isReassessmentDue() && (
+            <div className="bg-primary-light rounded-2xl p-4 flex items-start gap-3">
+              <span className="text-2xl">🔔</span>
+              <div>
+                <p className="font-heading text-lg text-dark font-semibold">Time for your reassessment!</p>
+                <p className="text-mid text-base mt-1">Your scheduled reassessment interval has passed. Start a new assessment below to update your exercise plan.</p>
+              </div>
+            </div>
+          )}
+
           <button
             onClick={handleStartAssessment}
             disabled={creating}
